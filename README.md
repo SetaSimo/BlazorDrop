@@ -48,7 +48,7 @@
 | `PageSize`                 | `int`                               | Number of items to load per page (default: 20)        |
 | `CurrentPage`              | `int`                               | Current page index for paging (default: 0)            |
 | `UpdateSearchDelayInMilliseconds` | `int`                      | Debounce delay for input search (default: 1000 ms)    |
-| `Value`                    | `T`                                 | Currently selected item                               |
+| `Value`                    | `T`                                 | Currently selected item/ default value                               |
 | `ValueChanged`             | `EventCallback<T>`                  | Callback for selection change                         |
 | `DisplaySelector`          | `Func<T, string>`                   | Function to extract display text from item            |
 | `LoadItemsPagedAsync`      | `Func<int, int, Task<IEnumerable<T>>>` | Async method for loading paginated items          |
