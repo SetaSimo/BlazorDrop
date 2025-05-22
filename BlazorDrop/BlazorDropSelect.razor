@@ -1,0 +1,29 @@
+﻿@typeparam T
+
+<div id="@Id" class="lazy-load-select-main-container @Class">
+    <input id="@_inputSelectorId"
+           placeholder="@Placeholder"
+           class="lazy-load-select-input"
+           @onclick="OpenDropdown"
+           @bind-value="@_searchText"
+           @bind-value:event="oninput" />
+    @if (_isDropdownOpen)
+    {
+        <div class="lazy-load-select-items-container">
+            @foreach (var item in Items)
+            {
+                <div class="lazy-load-select-item"
+                     @onclick="async ()=> await OnValueChangedAsync(item)">
+                    @GetDisplayValue(item)
+                </div>
+            }
+
+            @if (Items.Count == 0)
+            {
+                <div class="lazy-load-no-items">
+                    @ValueNotFoundMessageText
+                </div>
+            }
+        </div>
+    }
+</div>

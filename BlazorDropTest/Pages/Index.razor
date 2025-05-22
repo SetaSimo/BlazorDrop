@@ -1,0 +1,52 @@
+﻿@page "/"
+@using BlazorDropTest
+@using BlazorDropTest.Shared
+@using BlazorDrop
+
+<h3>Lazy Load Select Test</h3>
+
+<BlazorDropSelect T="KeyValuePair<Guid, string>"
+                DisplaySelector="@(x => x.Value)"
+                LoadItemsPagedAsync="LoadPageAsync"
+                SearchByInputTextAsync="SearchForItemAsync"
+                Placeholder="Выберите значение"
+                ValueChanged="OnValueChanged"
+                Value="@_selectedItem" />
+
+@if (_selectedItem.Value != null)
+{
+    <p>Выбрано: @_selectedItem.Value</p>
+}
+
+@code {
+    private Dictionary<Guid, string> _testValues = new Dictionary<Guid, string>();
+    private KeyValuePair<Guid, string> _selectedItem;
+
+    protected override async Task OnInitializedAsync()
+    {
+        for (int i = 0; i < 1000; i++)
+        {
+            var id = Guid.NewGuid();
+            _testValues.Add(id, $"Запись {i}");
+        }
+    }
+
+    private Task<IEnumerable<KeyValuePair<Guid, string>>> LoadPageAsync(int page, int pageSize)
+    {
+        var skip = (page - 1) * pageSize;
+        var items = _testValues.Skip(skip).Take(pageSize);
+        return Task.FromResult(items);
+    }
+
+    private Task<IEnumerable<KeyValuePair<Guid, string>>> SearchForItemAsync(string searchText)
+    {
+        var items = _testValues.Where(x => x.Value.Contains(searchText));
+        return Task.FromResult(items);
+    }
+
+    private Task OnValueChanged(KeyValuePair<Guid, string> item)
+    {
+        _selectedItem = item;
+        return Task.CompletedTask;
+    }
+}
