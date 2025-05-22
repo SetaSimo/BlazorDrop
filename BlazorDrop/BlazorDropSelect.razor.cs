@@ -52,6 +52,7 @@ namespace BlazorDrop
         private IJSRuntime JSRuntime { get; set; }
 
         private Guid _inputSelectorId = Guid.NewGuid();
+        private Guid _scrollContainerId = Guid.NewGuid();
 
         private List<T> Items { get; set; } = new List<T>();
 
@@ -61,6 +62,7 @@ namespace BlazorDrop
 
         private bool _didLoadAllItems = false;
         private bool _isDropdownOpen = false;
+        private bool _didAddedScrollEventHandler = false;
 
         private string GetDisplayValue(T item)
         {
@@ -84,8 +86,14 @@ namespace BlazorDrop
             {
                 _dotNetRef = DotNetObjectReference.Create(this);
 
-                await JSRuntime.InvokeVoidAsync("initLazySelect", _dotNetRef, _inputSelectorId, UpdateSearchDelayInMilliseconds);
-                await JSRuntime.InvokeVoidAsync("lazyLoadSelect.registerClickOutsideHandler", _dotNetRef, _inputSelectorId);
+                await JSRuntime.InvokeVoidAsync("initBlazorDropSelect", _dotNetRef, _inputSelectorId, UpdateSearchDelayInMilliseconds);
+                await JSRuntime.InvokeVoidAsync("BlazorDropSelect.registerClickOutsideHandler", _dotNetRef, _inputSelectorId);
+            }
+
+            if (_isDropdownOpen && _didAddedScrollEventHandler is false)
+            {
+                await JSRuntime.InvokeVoidAsync("BlazorDropSelect.registerScrollHandler", _dotNetRef, _scrollContainerId);
+                _didAddedScrollEventHandler = true;
             }
         }
 
@@ -96,7 +104,7 @@ namespace BlazorDrop
                 return;
 
             if (_isDropdownOpen is false)
-                OpenDropdown();
+                await OpenDropdown();
 
             _didLoadAllItems = false;
 
@@ -113,15 +121,31 @@ namespace BlazorDrop
         }
 
         [JSInvokable]
-        public void CloseDropdown()
+        public async Task OnScrollToEndAsync()
         {
-            _isDropdownOpen = false;
+            await LoadNextPageAsync();
             StateHasChanged();
         }
 
-        public void OpenDropdown()
+        [JSInvokable]
+        public async Task CloseDropdown()
+        {
+            _isDropdownOpen = false;
+            await JSRuntime.InvokeVoidAsync("BlazorDropSelect.unregisterScrollHandler", _scrollContainerId);
+            _didAddedScrollEventHandler = false;
+
+            StateHasChanged();
+        }
+
+        private async Task OpenDropdown()
         {
             _isDropdownOpen = true;
+            //if (_isDropdownOpen && _didAddedScrollEventHandler is false)
+            //{
+            //    await InvokeAsync(StateHasChanged);
+            //    await JSRuntime.InvokeVoidAsync("BlazorDropSelect.registerScrollHandler", _dotNetRef, _scrollContainerId);
+            //    _didAddedScrollEventHandler = true;
+            //}
         }
 
         private async Task OnValueChangedAsync(T value)
@@ -163,7 +187,9 @@ namespace BlazorDrop
 
         public async ValueTask DisposeAsync()
         {
-            await JSRuntime.InvokeVoidAsync("lazyLoadSelect.unregisterClickOutsideHandler", Id.ToString());
+            await JSRuntime.InvokeVoidAsync("lazyLoadSelect.unregisterClickOutsideHandler", _inputSelectorId);
+            await JSRuntime.InvokeVoidAsync("BlazorDropSelect.unregisterScrollHandler", _scrollContainerId);
+
             _dotNetRef?.Dispose();
         }
     }

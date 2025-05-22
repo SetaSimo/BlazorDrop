@@ -6,16 +6,18 @@
 <h3>Lazy Load Select Test</h3>
 
 <BlazorDropSelect T="KeyValuePair<Guid, string>"
-                DisplaySelector="@(x => x.Value)"
-                LoadItemsPagedAsync="LoadPageAsync"
-                SearchByInputTextAsync="SearchForItemAsync"
-                Placeholder="Выберите значение"
-                ValueChanged="OnValueChanged"
-                Value="@_selectedItem" />
+                  DisplaySelector="@(x => x.Value)"
+                  LoadItemsPagedAsync="LoadPageAsync"
+                  SearchByInputTextAsync="SearchForItemAsync"
+                  Placeholder="Select value"
+                  UpdateSearchDelayInMilliseconds="500"
+                  ValueNotFoundMessageText="Value not found"
+                  ValueChanged="OnValueChanged"
+                  Value="@_selectedItem" />
 
 @if (_selectedItem.Value != null)
 {
-    <p>Выбрано: @_selectedItem.Value</p>
+    <p>Selected: @_selectedItem.Value</p>
 }
 
 @code {
@@ -27,7 +29,7 @@
         for (int i = 0; i < 1000; i++)
         {
             var id = Guid.NewGuid();
-            _testValues.Add(id, $"Запись {i}");
+            _testValues.Add(id, $"Record {i}");
         }
     }
 

@@ -10,4 +10,7 @@
     <ItemGroup>
         <ProjectReference Include="..\BlazorDrop\BlazorDrop.csproj" />
     </ItemGroup>
+    <ItemGroup>
+      <Folder Include="Data\" />
+    </ItemGroup>
 </Project>
