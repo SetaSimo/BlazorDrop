@@ -91,3 +91,4 @@ private Task OnValueChanged(KeyValuePair<Guid, string> item)
 
 - Scroll detection triggers when the user reaches the bottom of the dropdown list.
 - Click outside and scroll handlers are automatically attached and detached.
+- This project currently targets **.NET Core 3.1**.
