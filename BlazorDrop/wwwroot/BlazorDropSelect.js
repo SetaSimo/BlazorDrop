@@ -1,68 +1,77 @@
-window.initBlazorDropSelect = (dotnetHelper, elementId, delay) => {
-    let debounceTimeout;
-    const input = document.getElementById(elementId);
-
-    if (!input) return;
-
-    input.addEventListener('input', () => {
-        clearTimeout(debounceTimeout);
-
-        debounceTimeout = setTimeout(() => {
-            dotnetHelper.invokeMethodAsync('UpdateSearchListAfterInputAsync');
-        }, delay);
-    });
-};
-
-window.BlazorDropSelect = {
-    registerClickOutsideHandler: function (dotNetHelper, elementId) {
-        function onClick(event) {
-            const dropdown = document.getElementById(elementId);
-            if (!dropdown || dropdown.contains(event.target)) {
-                return;
-            }
-
-            dotNetHelper.invokeMethodAsync('CloseDropdown');
+window.BlazorDropSelect = (() => {
+    const handlers = {};
+    function getElementSafe(id) {
+        const el = document.getElementById(id);
+        if (!el) {
+            console.warn(`BlazorDropSelect: Element not found: ${id}`);
         }
+        return el;
+    }
 
-        document.addEventListener('click', onClick);
+    function setCleanup(key, fn) {
+        handlers[key] = fn;
+    }
 
-        window[`BlazorDropSelect_cleanup_${elementId}`] = () => {
-            document.removeEventListener('click', onClick);
-        };
-    },
-
-    unregisterClickOutsideHandler: function (elementId) {
-        const cleanup = window[`BlazorDropSelect_cleanup_${elementId}`];
-        if (cleanup) {
-            cleanup();
-            delete window[`BlazorDropSelect_cleanup_${elementId}`];
+    function runCleanup(key) {
+        const fn = handlers[key];
+        if (fn) {
+            fn();
+            delete handlers[key];
         }
     }
-};
 
-window.BlazorDropSelect.registerScrollHandler = function (dotNetHelper, containerId) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
+    return {
+        initInputHandler(dotnetHelper, elementId, delay) {
+            const input = getElementSafe(elementId);
+            if (!input) return;
 
-    const onScroll = () => {
-        const pixelsBeforeThreshold = 50;
-            console.log("32131312")
-        if (container.scrollTop + container.clientHeight >= container.scrollHeight - pixelsBeforeThreshold) {
-            dotNetHelper.invokeMethodAsync('OnScrollToEndAsync');
+            let debounceTimeout;
+
+            input.addEventListener('input', () => {
+                clearTimeout(debounceTimeout);
+                debounceTimeout = setTimeout(() => {
+                    dotnetHelper.invokeMethodAsync('UpdateSearchListAfterInputAsync');
+                }, delay);
+            });
+        },
+
+        registerClickOutsideHandler(dotNetHelper, elementId) {
+            const onClick = (event) => {
+                const dropdown = getElementSafe(elementId);
+                if (!dropdown || dropdown.contains(event.target)) return;
+
+                dotNetHelper.invokeMethodAsync('CloseDropdown');
+            };
+
+            document.addEventListener('click', onClick);
+            setCleanup(`click_${elementId}`, () => {
+                document.removeEventListener('click', onClick);
+            });
+        },
+
+        unregisterClickOutsideHandler(elementId) {
+            runCleanup(`click_${elementId}`);
+        },
+
+        registerScrollHandler(dotNetHelper, containerId) {
+            const container = getElementSafe(containerId);
+            if (!container) return;
+
+            const onScroll = () => {
+                const pixelsBeforeThreshold = 50;
+                if (container.scrollTop + container.clientHeight >= container.scrollHeight - pixelsBeforeThreshold) {
+                    dotNetHelper.invokeMethodAsync('OnScrollToEndAsync');
+                }
+            };
+
+            container.addEventListener('scroll', onScroll);
+            setCleanup(`scroll_${containerId}`, () => {
+                container.removeEventListener('scroll', onScroll);
+            });
+        },
+
+        unregisterScrollHandler(containerId) {
+            runCleanup(`scroll_${containerId}`);
         }
     };
-
-    container.addEventListener('scroll', onScroll);
-
-    window[`BlazorDropSelect_scroll_cleanup_${containerId}`] = () => {
-        container.removeEventListener('scroll', onScroll);
-    };
-};
-
-window.BlazorDropSelect.unregisterScrollHandler = function (containerId) {
-    const cleanup = window[`BlazorDropSelect_scroll_cleanup_${containerId}`];
-    if (cleanup) {
-        cleanup();
-        delete window[`BlazorDropSelect_scroll_cleanup_${containerId}`];
-    }
-};
+})();

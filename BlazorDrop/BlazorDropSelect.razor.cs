@@ -34,7 +34,7 @@ namespace BlazorDrop
         public T Value { get; set; }
 
         [Parameter]
-        public EventCallback<T> ValueChanged { get; set; }
+        public Func<T, Task<T>> ValueChangedAsync { get; set; }
 
         [Parameter]
         public Func<T, string> DisplaySelector { get; set; }
@@ -77,6 +77,7 @@ namespace BlazorDrop
         protected override async Task OnInitializedAsync()
         {
             await LoadNextPageAsync();
+            CurrentPage++;
             UpdateSearchTextAfterSelect(Value);
         }
 
@@ -86,8 +87,9 @@ namespace BlazorDrop
             {
                 _dotNetRef = DotNetObjectReference.Create(this);
 
-                await JSRuntime.InvokeVoidAsync("initBlazorDropSelect", _dotNetRef, _inputSelectorId, UpdateSearchDelayInMilliseconds);
+                await JSRuntime.InvokeVoidAsync("BlazorDropSelect.initInputHandler", _dotNetRef, _inputSelectorId, UpdateSearchDelayInMilliseconds);
                 await JSRuntime.InvokeVoidAsync("BlazorDropSelect.registerClickOutsideHandler", _dotNetRef, _inputSelectorId);
+
             }
 
             if (_isDropdownOpen && _didAddedScrollEventHandler is false)
@@ -104,7 +106,7 @@ namespace BlazorDrop
                 return;
 
             if (_isDropdownOpen is false)
-                await OpenDropdown();
+                await OpenDropdownAsync();
 
             _didLoadAllItems = false;
 
@@ -137,29 +139,23 @@ namespace BlazorDrop
             StateHasChanged();
         }
 
-        private async Task OpenDropdown()
+        private async Task OpenDropdownAsync()
         {
             _isDropdownOpen = true;
-            //if (_isDropdownOpen && _didAddedScrollEventHandler is false)
-            //{
-            //    await InvokeAsync(StateHasChanged);
-            //    await JSRuntime.InvokeVoidAsync("BlazorDropSelect.registerScrollHandler", _dotNetRef, _scrollContainerId);
-            //    _didAddedScrollEventHandler = true;
-            //}
         }
 
         private async Task OnValueChangedAsync(T value)
         {
-            if (ValueChanged.HasDelegate)
-            {
-                await ValueChanged.InvokeAsync(value);
-            }
-            else
+            if (ValueChangedAsync == null)
             {
                 Value = value;
             }
+            else
+            {
+                Value = await ValueChangedAsync.Invoke(value);
+            }
 
-            UpdateSearchTextAfterSelect(value);
+            UpdateSearchTextAfterSelect(Value);
         }
 
         private async Task LoadNextPageAsync()
@@ -187,10 +183,13 @@ namespace BlazorDrop
 
         public async ValueTask DisposeAsync()
         {
-            await JSRuntime.InvokeVoidAsync("lazyLoadSelect.unregisterClickOutsideHandler", _inputSelectorId);
-            await JSRuntime.InvokeVoidAsync("BlazorDropSelect.unregisterScrollHandler", _scrollContainerId);
+            if (_dotNetRef != null)
+            {
+                await JSRuntime.InvokeVoidAsync("BlazorDropSelect.unregisterClickOutsideHandler", _inputSelectorId);
+                await JSRuntime.InvokeVoidAsync("BlazorDropSelect.unregisterScrollHandler", _scrollContainerId);
 
-            _dotNetRef?.Dispose();
+                _dotNetRef.Dispose();
+            }
         }
     }
 }

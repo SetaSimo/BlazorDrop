@@ -10,9 +10,10 @@
                   LoadItemsPagedAsync="LoadPageAsync"
                   SearchByInputTextAsync="SearchForItemAsync"
                   Placeholder="Select value"
-                  UpdateSearchDelayInMilliseconds="500"
+                  UpdateSearchDelayInMilliseconds="600"
+                  PageSize="10"
                   ValueNotFoundMessageText="Value not found"
-                  ValueChanged="OnValueChanged"
+                  ValueChangedAsync="OnValueChanged"
                   Value="@_selectedItem" />
 
 @if (_selectedItem.Value != null)
@@ -46,9 +47,10 @@
         return Task.FromResult(items);
     }
 
-    private Task OnValueChanged(KeyValuePair<Guid, string> item)
+    private Task<KeyValuePair<Guid, string>> OnValueChanged(KeyValuePair<Guid, string> item)
     {
         _selectedItem = item;
-        return Task.CompletedTask;
+        StateHasChanged();
+        return Task.FromResult(_selectedItem);
     }
 }
