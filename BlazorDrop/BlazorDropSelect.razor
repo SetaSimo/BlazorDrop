@@ -4,7 +4,7 @@
     <input id="@_inputSelectorId"
            placeholder="@Placeholder"
            class="lazy-load-select-input"
-           @onclick="OpenDropdown"
+           @onclick="OpenDropdownAsync"
            @bind-value="@_searchText"
            @bind-value:event="oninput" />
     @if (_isDropdownOpen)
