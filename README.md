@@ -27,12 +27,14 @@
 ```razor
 <BlazorDropSelect T="KeyValuePair<Guid, string>"
                   DisplaySelector="@(x => x.Value)"
-                  LoadItemsPagedAsync="LoadPageAsync"
-                  SearchByInputTextAsync="SearchForItemAsync"
+                  OnLoadItemsAsync="LoadPageAsync"
+                  OnSearchAsync="SearchForItemAsync"
+                  OnValueChangedAsync="OnValueChanged"
+                  CanShowLoadingIndicator="true"
                   Placeholder="Select value"
-                  UpdateSearchDelayInMilliseconds="500"
+                  UpdateSearchDelayInMilliseconds="600"
+                  PageSize="10"
                   ValueNotFoundMessageText="Value not found"
-                  ValueChanged="OnValueChanged"
                   Value="@_selectedItem" />
 ```
 
@@ -49,10 +51,10 @@
 | `CurrentPage`              | `int`                               | Current page index for paging (default: 0)            |
 | `UpdateSearchDelayInMilliseconds` | `int`                      | Debounce delay for input search (default: 1000 ms)    |
 | `Value`                    | `T`                                 | Currently selected item/ default value                               |
-| `ValueChangedAsync`             | `Func<T, Task<T>>`                  | Async callback triggered on selection change; should return the value to be assigned as selected                         |
+| `OnValueChangedAsync`             | `Func<T, Task<T>>`                  | Async callback triggered on selection change; should return the value to be assigned as selected                         |
 | `DisplaySelector`          | `Func<T, string>`                   | Function to extract display text from item            |
-| `LoadItemsPagedAsync`      | `Func<int, int, Task<IEnumerable<T>>>` | Async method for loading paginated items          |
-| `SearchByInputTextAsync`   | `Func<string, Task<IEnumerable<T>>>`| Async method for searching items by text              |
+| `OnLoadItemsAsync`      | `Func<int, int, Task<IEnumerable<T>>>` | Async method for loading paginated items          |
+| `OnSearchAsync`   | `Func<string, Task<IEnumerable<T>>>`| Async method for searching items by text              |
 
 ### Example Code
 

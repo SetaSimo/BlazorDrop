@@ -40,7 +40,7 @@ window.BlazorDropSelect = (() => {
                 const dropdown = getElementSafe(elementId);
                 if (!dropdown || dropdown.contains(event.target)) return;
 
-                dotNetHelper.invokeMethodAsync('CloseDropdown');
+                dotNetHelper.invokeMethodAsync('CloseDropdownAsync');
             };
 
             document.addEventListener('click', onClick);
