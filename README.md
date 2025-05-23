@@ -80,10 +80,11 @@ private Task<IEnumerable<KeyValuePair<Guid, string>>> SearchForItemAsync(string 
     return Task.FromResult(_testValues.Where(x => x.Value.Contains(text)));
 }
 
-private Task OnValueChanged(KeyValuePair<Guid, string> item)
+private Task<KeyValuePair<Guid, string>> OnValueChanged(KeyValuePair<Guid, string> item)
 {
     _selectedItem = item;
-    return Task.CompletedTask;
+    StateHasChanged();
+    return Task.FromResult(_selectedItem);
 }
 ```
 
