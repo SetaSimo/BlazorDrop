@@ -1,6 +1,6 @@
 # BlazorDropSelect
 
-`BlazorDropSelect` is a Blazor component for lazy-loading, searchable dropdowns with support for asynchronous data loading and virtual paging.
+`BlazorDropSelect` is a Blazor component for lazy-loading, searchable dropdowns with support for asynchronous data loading and virtual paging. It is styled using the Material design principles.
 
 ## Features
 
@@ -49,7 +49,7 @@
 | `CurrentPage`              | `int`                               | Current page index for paging (default: 0)            |
 | `UpdateSearchDelayInMilliseconds` | `int`                      | Debounce delay for input search (default: 1000 ms)    |
 | `Value`                    | `T`                                 | Currently selected item/ default value                               |
-| `ValueChanged`             | `EventCallback<T>`                  | Callback for selection change                         |
+| `ValueChangedAsync`             | `Func<T, Task<T>>`                  | Async callback triggered on selection change; should return the value to be assigned as selected                         |
 | `DisplaySelector`          | `Func<T, string>`                   | Function to extract display text from item            |
 | `LoadItemsPagedAsync`      | `Func<int, int, Task<IEnumerable<T>>>` | Async method for loading paginated items          |
 | `SearchByInputTextAsync`   | `Func<string, Task<IEnumerable<T>>>`| Async method for searching items by text              |
