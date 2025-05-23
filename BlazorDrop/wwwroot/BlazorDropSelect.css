@@ -1,34 +1,40 @@
-﻿.lazy-load-select-main-container {
+﻿.lazy-load-select-main {
     display: inline-block;
     position: relative;
     font-family: 'Roboto', sans-serif;
     font-size: 16px;
 }
 
+.lazy-load-select-input-with-indication {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
 .lazy-load-select-input {
-    width: 100%;
+    flex: 1;
     padding: 12px;
     border: none;
     border-bottom: 2px solid #ccc;
     outline: none;
     background: transparent;
     transition: border-color 0.3s ease;
+    flex: 1;
 }
 
-.lazy-load-select-input:focus {
-    border-color: #3f51b5;
-}
+    .lazy-load-select-input:focus {
+        border-color: #3f51b5;
+    }
 
-.lazy-load-select-items-container {
+.lazy-load-select-items {
     position: absolute;
     top: 100%;
     left: 0;
     right: 0;
-
     background-color: #fff;
     border-radius: 4px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    z-index: 999;
+    z-index: 10;
     overflow-y: auto;
     max-height: 200px;
     margin-top: 4px;
@@ -41,9 +47,9 @@
     transition: background-color 0.2s ease;
 }
 
-.lazy-load-select-item:hover {
-    background-color: rgba(63, 81, 181, 0.1);
-}
+    .lazy-load-select-item:hover {
+        background-color: rgba(63, 81, 181, 0.1);
+    }
 
 .lazy-load-no-items {
     padding: 12px 16px;
@@ -53,8 +59,19 @@
     font-style: italic;
 }
 
-.lazy-load-select-items-container {
+.lazy-load-select-items {
     animation: fadeIn 0.2s ease-out;
+}
+
+.lazy-load-select-loading-indicator {
+    position: absolute;
+    right: 0.5rem;
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid rgba(0, 0, 0, 0.2);
+    border-top-color: #3498db;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
 }
 
 @keyframes fadeIn {
@@ -66,5 +83,11 @@
     to {
         opacity: 1;
         transform: scaleY(1);
+    }
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
     }
 }

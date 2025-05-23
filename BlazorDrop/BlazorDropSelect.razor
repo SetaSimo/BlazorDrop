@@ -1,19 +1,26 @@
 ﻿@typeparam T
 
-<div id="@Id" class="lazy-load-select-main-container @Class">
-    <input id="@_inputSelectorId"
-           placeholder="@Placeholder"
-           class="lazy-load-select-input"
-           @onclick="OpenDropdownAsync"
-           @bind-value="@_searchText"
-           @bind-value:event="oninput" />
+<div id="@Id" class="lazy-load-select-main @Class">
+
+    <div class="lazy-load-select-input-with-indication">
+        <input id="@_inputSelectorId"
+               placeholder="@Placeholder"
+               class="lazy-load-select-input"
+               @onclick="OpenDropdownAsync"
+               @bind-value="@_searchText"
+               @bind-value:event="oninput" />
+        @if (_isLoading && CanShowLoadingIndicator)
+        {
+            <div class="lazy-load-select-loading-indicator"></div>
+        }
+    </div>
     @if (_isDropdownOpen)
     {
-        <div class="lazy-load-select-items-container" id="@_scrollContainerId">
+        <div class="lazy-load-select-items" id="@_scrollContainerId">
             @foreach (var item in Items)
             {
                 <div class="lazy-load-select-item"
-                     @onclick="async ()=> await OnValueChangedAsync(item)">
+                     @onclick="async ()=> await HandleItemSelectedAsync(item)">
                     @GetDisplayValue(item)
                 </div>
             }

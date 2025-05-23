@@ -10,7 +10,7 @@ namespace BlazorDrop
     public partial class BlazorDropSelect<T> : IAsyncDisposable, IDisposable
     {
         [Parameter]
-        public Guid Id { get; set; } = Guid.NewGuid();
+        public string Id { get; set; } = Guid.NewGuid().ToString();
 
         [Parameter]
         public string Class { get; set; }
@@ -31,10 +31,13 @@ namespace BlazorDrop
         public int UpdateSearchDelayInMilliseconds { get; set; } = 1000;
 
         [Parameter]
+        public bool CanShowLoadingIndicator { get; set; } = true;
+
+        [Parameter]
         public T Value { get; set; }
 
         [Parameter]
-        public Func<T, Task<T>> ValueChangedAsync { get; set; }
+        public Func<T, Task<T>> OnValueChangedAsync { get; set; }
 
         [Parameter]
         public Func<T, string> DisplaySelector { get; set; }
@@ -43,26 +46,27 @@ namespace BlazorDrop
         /// first parameter is page number, second parameter is page size
         /// </summary>
         [Parameter]
-        public Func<int, int, Task<IEnumerable<T>>> LoadItemsPagedAsync { get; set; }
+        public Func<int, int, Task<IEnumerable<T>>> OnLoadItemsAsync { get; set; }
 
         [Parameter]
-        public Func<string, Task<IEnumerable<T>>> SearchByInputTextAsync { get; set; }
+        public Func<string, Task<IEnumerable<T>>> OnSearchAsync { get; set; }
 
         [Inject]
         private IJSRuntime JSRuntime { get; set; }
-
-        private Guid _inputSelectorId = Guid.NewGuid();
-        private Guid _scrollContainerId = Guid.NewGuid();
 
         private List<T> Items { get; set; } = new List<T>();
 
         private DotNetObjectReference<BlazorDropSelect<T>> _dotNetRef;
 
+        private Guid _inputSelectorId = Guid.NewGuid();
+        private Guid _scrollContainerId = Guid.NewGuid();
+
         private string _searchText = string.Empty;
 
-        private bool _didLoadAllItems = false;
+        private bool _hasLoadedAllItems = false;
         private bool _isDropdownOpen = false;
-        private bool _didAddedScrollEventHandler = false;
+        private bool _isScrollHandlerAttached = false;
+        private bool _isLoading = false;
 
         private string GetDisplayValue(T item)
         {
@@ -76,8 +80,7 @@ namespace BlazorDrop
 
         protected override async Task OnInitializedAsync()
         {
-            await LoadNextPageAsync();
-            CurrentPage++;
+            await LoadPageAsync(CurrentPage);
             UpdateSearchTextAfterSelect(Value);
         }
 
@@ -92,50 +95,55 @@ namespace BlazorDrop
 
             }
 
-            if (_isDropdownOpen && _didAddedScrollEventHandler is false)
+            if (_isDropdownOpen && _isScrollHandlerAttached is false)
             {
                 await JSRuntime.InvokeVoidAsync("BlazorDropSelect.registerScrollHandler", _dotNetRef, _scrollContainerId);
-                _didAddedScrollEventHandler = true;
+                _isScrollHandlerAttached = true;
             }
         }
 
         [JSInvokable]
         public async Task UpdateSearchListAfterInputAsync()
         {
-            if (SearchByInputTextAsync == null)
+            if (OnSearchAsync == null)
+            {
+                await SearchDataIfFilterFunNotProvidedAsync();
                 return;
+            }
 
             if (_isDropdownOpen is false)
                 await OpenDropdownAsync();
 
-            _didLoadAllItems = false;
+            _hasLoadedAllItems = false;
 
             if (string.IsNullOrWhiteSpace(_searchText))
             {
-                CurrentPage = 0;
-                await LoadNextPageAsync();
+                await ResetSearchAsync();
                 return;
             }
 
-            var newItems = await SearchByInputTextAsync(_searchText);
-            Items = newItems.ToList();
-            StateHasChanged();
+            await SearchWithFilterAsync();
         }
 
         [JSInvokable]
         public async Task OnScrollToEndAsync()
         {
+            if (_isLoading)
+            {
+                return;
+            }
+
+            ShowLoadingIndicator(true);
             await LoadNextPageAsync();
             StateHasChanged();
         }
 
         [JSInvokable]
-        public async Task CloseDropdown()
+        public async Task CloseDropdownAsync()
         {
             _isDropdownOpen = false;
-            await JSRuntime.InvokeVoidAsync("BlazorDropSelect.unregisterScrollHandler", _scrollContainerId);
-            _didAddedScrollEventHandler = false;
-
+            _isScrollHandlerAttached = false;
+            await UnregisterScrollHandlerAsync();
             StateHasChanged();
         }
 
@@ -144,15 +152,17 @@ namespace BlazorDrop
             _isDropdownOpen = true;
         }
 
-        private async Task OnValueChangedAsync(T value)
+        private async Task HandleItemSelectedAsync(T value)
         {
-            if (ValueChangedAsync == null)
+            if (OnValueChangedAsync == null)
             {
                 Value = value;
             }
             else
             {
-                Value = await ValueChangedAsync.Invoke(value);
+                ShowLoadingIndicator(true);
+                Value = await OnValueChangedAsync.Invoke(value);
+                ShowLoadingIndicator(false);
             }
 
             UpdateSearchTextAfterSelect(Value);
@@ -160,13 +170,31 @@ namespace BlazorDrop
 
         private async Task LoadNextPageAsync()
         {
-            if (LoadItemsPagedAsync == null || _didLoadAllItems)
+            CurrentPage++;
+            await LoadPageAsync(CurrentPage);
+        }
+
+        private async Task LoadPageAsync(int pageNumber)
+        {
+            if (OnLoadItemsAsync == null || _hasLoadedAllItems)
                 return;
 
-            var newItems = await LoadItemsPagedAsync(CurrentPage, PageSize);
+            ShowLoadingIndicator(true);
+
+            var newItems = await OnLoadItemsAsync(pageNumber, PageSize);
             Items.AddRange(newItems);
-            _didLoadAllItems = newItems == null || newItems?.Count() == 0;
-            CurrentPage++;
+
+            _hasLoadedAllItems = newItems == null || newItems?.Count() == 0;
+            ShowLoadingIndicator(false);
+        }
+
+        private void ShowLoadingIndicator(bool isLoading)
+        {
+            if (CanShowLoadingIndicator)
+            {
+                _isLoading = isLoading;
+                StateHasChanged();
+            }
         }
 
         private void UpdateSearchTextAfterSelect(T value)
@@ -175,6 +203,44 @@ namespace BlazorDrop
                 return;
 
             _searchText = GetDisplayValue(value);
+        }
+
+        private async Task ResetSearchAsync()
+        {
+            CurrentPage = 0;
+            await LoadPageAsync(0);
+            StateHasChanged();
+        }
+
+        private async Task SearchDataIfFilterFunNotProvidedAsync()
+        {
+            ShowLoadingIndicator(true);
+            await UnregisterScrollHandlerAsync();
+
+            CurrentPage = 0;
+            await LoadPageAsync(0);
+            Items = Items
+                .Where(x => GetDisplayValue(x).ToUpper().Contains(_searchText.ToUpper()))
+                .ToList();
+
+            ShowLoadingIndicator(false);
+            StateHasChanged();
+        }
+
+        private async Task SearchWithFilterAsync()
+        {
+            ShowLoadingIndicator(true);
+            await UnregisterScrollHandlerAsync();
+
+            var newItems = await OnSearchAsync(_searchText);
+            Items = newItems.ToList();
+
+            ShowLoadingIndicator(false);
+        }
+
+        private async Task UnregisterScrollHandlerAsync()
+        {
+            await JSRuntime.InvokeVoidAsync("BlazorDropSelect.unregisterScrollHandler", _scrollContainerId);
         }
 
         public void Dispose()

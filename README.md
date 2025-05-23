@@ -27,12 +27,14 @@
 ```razor
 <BlazorDropSelect T="KeyValuePair<Guid, string>"
                   DisplaySelector="@(x => x.Value)"
-                  LoadItemsPagedAsync="LoadPageAsync"
-                  SearchByInputTextAsync="SearchForItemAsync"
+                  OnLoadItemsAsync="LoadPageAsync"
+                  OnSearchAsync="SearchForItemAsync"
+                  OnValueChangedAsync="OnValueChanged"
+                  CanShowLoadingIndicator="true"
                   Placeholder="Select value"
-                  UpdateSearchDelayInMilliseconds="500"
+                  UpdateSearchDelayInMilliseconds="600"
+                  PageSize="10"
                   ValueNotFoundMessageText="Value not found"
-                  ValueChanged="OnValueChanged"
                   Value="@_selectedItem" />
 ```
 

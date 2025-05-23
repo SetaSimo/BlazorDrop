@@ -7,13 +7,17 @@
 
 <BlazorDropSelect T="KeyValuePair<Guid, string>"
                   DisplaySelector="@(x => x.Value)"
-                  LoadItemsPagedAsync="LoadPageAsync"
-                  SearchByInputTextAsync="SearchForItemAsync"
+                  OnLoadItemsAsync="LoadPageAsync"
+                  OnSearchAsync="SearchForItemAsync"
+                  OnValueChangedAsync="OnValueChanged"
+                  CanShowLoadingIndicator="true"
                   Placeholder="Select value"
                   UpdateSearchDelayInMilliseconds="600"
                   PageSize="10"
                   ValueNotFoundMessageText="Value not found"
-                  ValueChangedAsync="OnValueChanged"
+                  Class="new-component-class"
+                  Id="select-inside-page"
+                  CurrentPage="@(0)"
                   Value="@_selectedItem" />
 
 @if (_selectedItem.Value != null)
@@ -34,23 +38,26 @@
         }
     }
 
-    private Task<IEnumerable<KeyValuePair<Guid, string>>> LoadPageAsync(int page, int pageSize)
+    private async Task<IEnumerable<KeyValuePair<Guid, string>>> LoadPageAsync(int page, int pageSize)
     {
-        var skip = (page - 1) * pageSize;
+        var skip = page * pageSize;
         var items = _testValues.Skip(skip).Take(pageSize);
-        return Task.FromResult(items);
+        await Task.Delay(1000);
+        return items;
     }
 
-    private Task<IEnumerable<KeyValuePair<Guid, string>>> SearchForItemAsync(string searchText)
+    private async Task<IEnumerable<KeyValuePair<Guid, string>>> SearchForItemAsync(string searchText)
     {
         var items = _testValues.Where(x => x.Value.Contains(searchText));
-        return Task.FromResult(items);
+        await Task.Delay(1000);
+        return items;
     }
 
-    private Task<KeyValuePair<Guid, string>> OnValueChanged(KeyValuePair<Guid, string> item)
+    private async Task<KeyValuePair<Guid, string>> OnValueChanged(KeyValuePair<Guid, string> item)
     {
+        await Task.Delay(1000);
         _selectedItem = item;
         StateHasChanged();
-        return Task.FromResult(_selectedItem);
+        return _selectedItem;
     }
 }
