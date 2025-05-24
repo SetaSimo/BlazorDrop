@@ -3,14 +3,13 @@
 @using BlazorDropTest.Shared
 @using BlazorDrop
 
-<h3>Lazy Load Select Test</h3>
-
 <BlazorDropSelect T="KeyValuePair<Guid, string>"
                   DisplaySelector="@(x => x.Value)"
                   OnLoadItemsAsync="LoadPageAsync"
                   OnSearchAsync="SearchForItemAsync"
                   OnValueChangedAsync="OnValueChanged"
                   CanShowLoadingIndicator="true"
+                  Disabled="false"
                   Placeholder="Select value"
                   UpdateSearchDelayInMilliseconds="600"
                   PageSize="10"
@@ -25,9 +24,31 @@
     <p>Selected: @_selectedItem.Value</p>
 }
 
+<BlazorDropSelect T="KeyValuePair<Guid, string>"
+                  DisplaySelector="@(x => x.Value)"
+                  OnLoadItemsAsync="LoadPageAsync"
+                  OnSearchAsync="SearchForItemAsync"
+                  OnValueChangedAsync="OnValueChanged"
+                  CanShowLoadingIndicator="true"
+                  Disabled="true"
+                  Placeholder="Select value"
+                  UpdateSearchDelayInMilliseconds="600"
+                  PageSize="10"
+                  ValueNotFoundMessageText="Value not found"
+                  Class="new-component-class"
+                  Id="select-inside-page"
+                  CurrentPage="@(0)"
+                  Value="@_selectedItemInDisabledSelect" />
+
+@if (_selectedItemInDisabledSelect.Value != null)
+{
+    <p>Selected: @_selectedItemInDisabledSelect.Value</p>
+}
+
 @code {
     private Dictionary<Guid, string> _testValues = new Dictionary<Guid, string>();
     private KeyValuePair<Guid, string> _selectedItem;
+    private KeyValuePair<Guid, string> _selectedItemInDisabledSelect;
 
     protected override async Task OnInitializedAsync()
     {

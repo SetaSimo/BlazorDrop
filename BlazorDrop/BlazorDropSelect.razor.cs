@@ -34,6 +34,9 @@ namespace BlazorDrop
         public bool CanShowLoadingIndicator { get; set; } = true;
 
         [Parameter]
+        public bool Disabled { get; set; }
+
+        [Parameter]
         public T Value { get; set; }
 
         [Parameter]
@@ -86,7 +89,7 @@ namespace BlazorDrop
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
-            if (firstRender)
+            if (firstRender && Disabled is false)
             {
                 _dotNetRef = DotNetObjectReference.Create(this);
 
@@ -95,7 +98,7 @@ namespace BlazorDrop
 
             }
 
-            if (_isDropdownOpen && _isScrollHandlerAttached is false)
+            if (_isDropdownOpen && _isScrollHandlerAttached is false && Disabled is false)
             {
                 await JSRuntime.InvokeVoidAsync("BlazorDropSelect.registerScrollHandler", _dotNetRef, _scrollContainerId);
                 _isScrollHandlerAttached = true;
@@ -148,11 +151,17 @@ namespace BlazorDrop
 
         private async Task OpenDropdownAsync()
         {
+            if (Disabled)
+                return;
+
             _isDropdownOpen = true;
         }
 
         private async Task HandleItemSelectedAsync(T value)
         {
+            if (Disabled)
+                return;
+
             if (OnValueChangedAsync == null)
             {
                 Value = value;
