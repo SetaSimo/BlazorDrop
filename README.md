@@ -40,10 +40,14 @@ Then reference the JavaScript and CSS in your host page:
                   OnSearchAsync="SearchForItemAsync"
                   OnValueChangedAsync="OnValueChanged"
                   CanShowLoadingIndicator="true"
+                  Disabled="false"
                   Placeholder="Select value"
                   UpdateSearchDelayInMilliseconds="600"
                   PageSize="10"
                   ValueNotFoundMessageText="Value not found"
+                  Class="new-component-class"
+                  Id="select-inside-page"
+                  CurrentPage="@(0)"
                   Value="@_selectedItem" />
 ```
 
@@ -65,6 +69,7 @@ Then reference the JavaScript and CSS in your host page:
 | `OnLoadItemsAsync`         | `Func<int, int, Task<IEnumerable<T>>>` | Async method for loading paginated items          |
 | `OnSearchAsync`            | `Func<string, Task<IEnumerable<T>>>`| Async method for searching items by text              |
 | `CanShowLoadingIndicator`  | `bool`                              | Show loading spinner during async operations          |
+| `Disabled`                 | `bool`                              | Disables the dropdown input and prevents user interaction |
 
 ### Example Code
 

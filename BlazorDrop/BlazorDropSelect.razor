@@ -6,6 +6,8 @@
         <input id="@_inputSelectorId"
                placeholder="@Placeholder"
                class="lazy-load-select-input"
+               disabled="@Disabled"
+               readonly="@Disabled"
                @onclick="OpenDropdownAsync"
                @bind-value="@_searchText"
                @bind-value:event="oninput" />

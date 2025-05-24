@@ -19,8 +19,12 @@
     outline: none;
     background: transparent;
     transition: border-color 0.3s ease;
-    flex: 1;
 }
+
+    .lazy-load-select-input:disabled {
+        background-color: #f3f3f3;
+        cursor: not-allowed;
+    }
 
     .lazy-load-select-input:focus {
         border-color: #3f51b5;
