@@ -63,7 +63,7 @@
     animation: fadeIn 0.2s ease-out;
 }
 
-.lazy-load-select-loading-indicator {
+.blazor-drop-loading-indicator {
     position: absolute;
     right: 0.5rem;
     width: 1rem;

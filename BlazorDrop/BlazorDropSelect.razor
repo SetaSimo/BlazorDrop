@@ -11,7 +11,7 @@
                @bind-value:event="oninput" />
         @if (_isLoading && CanShowLoadingIndicator)
         {
-            <div class="lazy-load-select-loading-indicator"></div>
+            <BlazorDropLoadingIndicator></BlazorDropLoadingIndicator>
         }
     </div>
     @if (_isDropdownOpen)

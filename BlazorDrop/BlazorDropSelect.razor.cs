@@ -107,8 +107,7 @@ namespace BlazorDrop
         {
             if (OnSearchAsync == null)
             {
-                await SearchDataIfFilterFunNotProvidedAsync();
-                return;
+                throw new ArgumentException($"{nameof(OnSearchAsync)} is null");
             }
 
             if (_isDropdownOpen is false)
@@ -208,22 +207,7 @@ namespace BlazorDrop
         private async Task ResetSearchAsync()
         {
             CurrentPage = 0;
-            await LoadPageAsync(0);
-            StateHasChanged();
-        }
-
-        private async Task SearchDataIfFilterFunNotProvidedAsync()
-        {
-            ShowLoadingIndicator(true);
-            await UnregisterScrollHandlerAsync();
-
-            CurrentPage = 0;
-            await LoadPageAsync(0);
-            Items = Items
-                .Where(x => GetDisplayValue(x).ToUpper().Contains(_searchText.ToUpper()))
-                .ToList();
-
-            ShowLoadingIndicator(false);
+            await LoadPageAsync(CurrentPage);
             StateHasChanged();
         }
 

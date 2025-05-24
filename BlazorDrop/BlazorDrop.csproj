@@ -6,6 +6,11 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <Compile Remove="BlazorDropLoadingIndicator.razor.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Content Include="BlazorDropLoadingIndicator.razor.cs" />
         <Content Include="BlazorDropSelect.razor.cs" />
     </ItemGroup>
 
