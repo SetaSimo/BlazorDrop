@@ -1,4 +1,5 @@
-# BlazorDropSelect
+# BlazorDrop
+![image](https://github.com/user-attachments/assets/c62a8571-ae68-465f-9451-9b5970739717)
 
 `BlazorDropSelect` is a Blazor component for lazy-loading, searchable dropdowns with support for asynchronous data loading and virtual paging. It's styled using the Material design principles.
 
