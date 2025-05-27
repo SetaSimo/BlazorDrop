@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace BlazorDrop.Components.Base
 {
-    public class BaseLazyLoadWithSelect<T> : BaseLazyScrollingComponent<T>
+    public abstract class BaseLazyLoadWithSelect<T> : BaseLazyScrollingComponent<T>
     {
         [Parameter]
         public T Value { get; set; }

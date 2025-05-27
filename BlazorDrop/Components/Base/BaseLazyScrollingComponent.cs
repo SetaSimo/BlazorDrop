@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace BlazorDrop.Components.Base
 {
-    public class BaseLazyScrollingComponent<T> : BaseLazyComponent
+    public abstract class BaseLazyScrollingComponent<T> : BaseLazyComponent
     {
         [Parameter]
         public string LoadingIndicatorId { get; set; }
