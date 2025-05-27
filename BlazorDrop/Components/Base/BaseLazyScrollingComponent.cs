@@ -28,13 +28,16 @@ namespace BlazorDrop.Components.Base
         public string ValueNotFoundMessageText { get; set; }
 
         [Parameter]
-        public bool CanShowLoadingIndicator { get; set; } = true;
+        public bool ShowLoadingIndicator { get; set; } = true;
 
         /// <summary>
         /// first parameter is page number, second parameter is page size
         /// </summary>
         [Parameter]
         public Func<int, int, Task<IEnumerable<T>>> OnLoadItemsAsync { get; set; }
+
+        [Parameter]
+        public Func<T, string> DisplaySelector { get; set; }
 
         protected List<T> Items { get; set; } = new List<T>();
 
@@ -51,7 +54,7 @@ namespace BlazorDrop.Components.Base
                 return;
             }
 
-            ShowLoadingIndicator(true);
+            ShowLoadingProgress(true);
             await LoadNextPageAsync();
             StateHasChanged();
         }
@@ -67,23 +70,37 @@ namespace BlazorDrop.Components.Base
             if (OnLoadItemsAsync == null || _hasLoadedAllItems)
                 return;
 
-            ShowLoadingIndicator(true);
+            ShowLoadingProgress(true);
 
             var newItems = await OnLoadItemsAsync(pageNumber, PageSize);
             Items.AddRange(newItems);
 
             _hasLoadedAllItems = newItems == null || newItems?.Count() == 0;
-            ShowLoadingIndicator(false);
+            ShowLoadingProgress(false);
         }
 
-        protected void ShowLoadingIndicator(bool isLoading)
+        protected void ShowLoadingProgress(bool isLoading)
         {
-            if (CanShowLoadingIndicator)
+            if (ShowLoadingIndicator)
             {
                 _isLoading = isLoading;
                 StateHasChanged();
             }
         }
+        
+        protected string GetDisplayValue(T item)
+        {
+            if (DisplaySelector == null)
+            {
+                return item.ToString();
+            }
 
+            return DisplaySelector(item);
+        }
+
+        protected async Task UnregisterScrollHandlerAsync()
+        {
+            await JSRuntime.InvokeVoidAsync("BlazorDropSelect.unregisterScrollHandler", _scrollContainerId);
+        }
     }
 }

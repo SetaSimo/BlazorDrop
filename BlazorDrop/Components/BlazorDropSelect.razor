@@ -3,38 +3,38 @@
 @typeparam T
 @inherits BaseLazyLoadWithSelect<T>
 
-<div id="@Id" class="lazy-load-select-main @Class">
+<div id="@Id" class="bzd-container @Class">
 
-    <div class="lazy-load-select-input-with-indication">
+    <div class="bzd-input-wrapper">
         <input id="@_inputSelectorId"
+               class="bzd-input"
                placeholder="@Placeholder"
-               class="lazy-load-select-input"
                disabled="@Disabled"
                readonly="@Disabled"
                @onclick="OpenDropdownAsync"
                @bind-value="@_searchText"
                @bind-value:event="oninput" />
-        @if (_isLoading && CanShowLoadingIndicator)
+
+        @if (_isLoading && ShowLoadingIndicator)
         {
-            <BlazorDropLoadingIndicator Id="@LoadingIndicatorId" Class="@LoadingIndicatorClass"></BlazorDropLoadingIndicator>
+            <BlazorDropCircularProgressBar Id="@LoadingIndicatorId" Class="@LoadingIndicatorClass"></BlazorDropCircularProgressBar>
         }
     </div>
+
     @if (_isDropdownOpen)
     {
-        <div class="lazy-load-select-items" id="@_scrollContainerId">
+        <div class="bzd-dropdown" id="@_scrollContainerId">
             @foreach (var item in Items)
             {
-                <div class="@SelectableItemClass"
+                <div class="@GetSelectableItemClass(item)"
                      @onclick="async () => await HandleItemSelectedAsync(item)">
                     @GetDisplayValue(item)
                 </div>
             }
 
-            @if (Items.Count == 0)
+            @if (!Items.Any())
             {
-                <div class="lazy-load-no-items">
-                    @ValueNotFoundMessageText
-                </div>
+                <div class="bzd-empty-message">@ValueNotFoundMessageText</div>
             }
         </div>
     }

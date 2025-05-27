@@ -1,64 +1,31 @@
-﻿using Microsoft.AspNetCore.Components;
-using Microsoft.JSInterop;
+﻿using Microsoft.JSInterop;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace BlazorDrop.Components
 {
     public partial class BlazorDropList<T> : IAsyncDisposable, IDisposable
     {
-        [Parameter]
-        public Func<T, Task<T>> OnItemClick { get; set; }
-
-        [Parameter]
-        public Func<T, string> DisplaySelector { get; set; }
-
         private DotNetObjectReference<BlazorDropList<T>> _dotNetRef;
 
-        private string GetDisplayValue(T item)
-        {
-            if (DisplaySelector == null)
-            {
-                return item.ToString();
-            }
-
-            return DisplaySelector(item);
-        }
+        private bool _didLoadPageAfterInitialization = false;
+        private bool _didAddScrollEvent = false;
 
         protected override async Task OnInitializedAsync()
         {
             await LoadPageAsync(CurrentPage);
+            _didLoadPageAfterInitialization = true;
         }
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
-            if (firstRender)
+            if (_didLoadPageAfterInitialization && _didAddScrollEvent is false)
             {
+                _didAddScrollEvent = true;
                 _dotNetRef = DotNetObjectReference.Create(this);
 
-                await JSRuntime.InvokeVoidAsync("BlazorDropSelect.registerScrollHandler", _dotNetRef, _scrollContainerId, nameof(OnScrollToEndAsync));
+                await JSRuntime.InvokeVoidAsync("BlazorDropSelect.registerScrollHandler", _dotNetRef, Id, nameof(OnScrollToEndAsync));
             }
-        }
-
-        private async Task HandleItemSelectedAsync(T value)
-        {
-            if (OnItemClick == null)
-            {
-                Value = value;
-            }
-            else
-            {
-                ShowLoadingIndicator(true);
-                Value = await OnItemClick.Invoke(value);
-                ShowLoadingIndicator(false);
-            }
-        }
-
-        private async Task UnregisterScrollHandlerAsync()
-        {
-            await JSRuntime.InvokeVoidAsync("BlazorDropSelect.unregisterScrollHandler", _scrollContainerId);
         }
 
         public void Dispose()
@@ -69,7 +36,7 @@ namespace BlazorDrop.Components
         {
             if (_dotNetRef != null)
             {
-                await JSRuntime.InvokeVoidAsync("BlazorDropSelect.unregisterScrollHandler", _scrollContainerId);
+                await UnregisterScrollHandlerAsync();
 
                 _dotNetRef.Dispose();
             }

@@ -12,17 +12,15 @@
     <ItemGroup>
         <Compile Remove="BlazorDropLoadingIndicator.razor.cs" />
         <Compile Remove="Components\BlazorDropSelect - Copy.razor.cs" />
-    </ItemGroup>
-    
-    <ItemGroup>
-      <Compile Include="Components\Image\LazyImage.razor" />
+        <Compile Remove="Components\Loading\BlazorDropCircularProgressBar - Copy.razor.cs" />
     </ItemGroup>
 
+
     <ItemGroup>
-        <Content Include="Components\Loading\BlazorDropLoadingIndicator.razor.cs" />
+        <Content Include="Components\Loading\BlazorDropLinearProgressBar.razor.cs" />
+        <Content Include="Components\Loading\BlazorDropCircularProgressBar.razor.cs" />
         <Content Include="Components\BlazorDropList.razor.cs" />
         <Content Include="Components\BlazorDropSelect.razor.cs" />
-        <Content Include="Components\Image\LazyImageScroll.razor.cs" />
     </ItemGroup>
 
     <PropertyGroup>

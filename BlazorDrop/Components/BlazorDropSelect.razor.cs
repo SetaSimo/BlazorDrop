@@ -13,22 +13,10 @@ namespace BlazorDrop.Components
         public string Placeholder { get; set; }
 
         [Parameter]
-        public string ValueNotFoundMessageText { get; set; }
-
-        [Parameter]
         public int UpdateSearchDelayInMilliseconds { get; set; } = 1000;
 
         [Parameter]
         public bool Disabled { get; set; }
-
-        [Parameter]
-        public T Value { get; set; }
-
-        [Parameter]
-        public Func<T, Task<T>> OnValueChangedAsync { get; set; }
-
-        [Parameter]
-        public Func<T, string> DisplaySelector { get; set; }
 
         [Parameter]
         public Func<string, Task<IEnumerable<T>>> OnSearchAsync { get; set; }
@@ -40,16 +28,6 @@ namespace BlazorDrop.Components
         private string _searchText = string.Empty;
 
         private bool _isDropdownOpen = false;
-
-        private string GetDisplayValue(T item)
-        {
-            if (DisplaySelector == null)
-            {
-                return item.ToString();
-            }
-
-            return DisplaySelector(item);
-        }
 
         protected override async Task OnInitializedAsync()
         {
@@ -113,21 +91,9 @@ namespace BlazorDrop.Components
             _isDropdownOpen = true;
         }
 
-        private async Task HandleItemSelectedAsync(T value)
+        protected override async Task HandleItemSelectedAsync(T value)
         {
-            if (Disabled)
-                return;
-
-            if (OnValueChangedAsync == null)
-            {
-                Value = value;
-            }
-            else
-            {
-                ShowLoadingIndicator(true);
-                Value = await OnValueChangedAsync.Invoke(value);
-                ShowLoadingIndicator(false);
-            }
+            await base.HandleItemSelectedAsync(value);
 
             UpdateSearchTextAfterSelect(Value);
         }
@@ -149,18 +115,13 @@ namespace BlazorDrop.Components
 
         private async Task SearchWithFilterAsync()
         {
-            ShowLoadingIndicator(true);
+            ShowLoadingProgress(true);
             await UnregisterScrollHandlerAsync();
 
             var newItems = await OnSearchAsync(_searchText);
             Items = newItems.ToList();
 
-            ShowLoadingIndicator(false);
-        }
-
-        private async Task UnregisterScrollHandlerAsync()
-        {
-            await JSRuntime.InvokeVoidAsync("BlazorDropSelect.unregisterScrollHandler", _scrollContainerId);
+            ShowLoadingProgress(false);
         }
 
         public void Dispose()
@@ -172,7 +133,7 @@ namespace BlazorDrop.Components
             if (_dotNetRef != null)
             {
                 await JSRuntime.InvokeVoidAsync("BlazorDropSelect.unregisterClickOutsideHandler", _inputSelectorId);
-                await JSRuntime.InvokeVoidAsync("BlazorDropSelect.unregisterScrollHandler", _scrollContainerId);
+                await UnregisterScrollHandlerAsync();
 
                 _dotNetRef.Dispose();
             }

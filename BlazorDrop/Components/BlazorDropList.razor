@@ -3,25 +3,22 @@
 @typeparam T
 @inherits BaseLazyLoadWithSelect<T>
 
-<div id="@Id" class="lazy-load-select-main @Class">
-    @if (_isLoading && CanShowLoadingIndicator)
+<div id="@Id" class="bzd-container bzd-list-container @Class">
+    @foreach (var item in Items)
     {
-        <BlazorDropLoadingIndicator Id="@LoadingIndicatorId" Class="@LoadingIndicatorClass"></BlazorDropLoadingIndicator>
+        <div class="@GetSelectableItemClass(item)"
+             @onclick="async () => await HandleItemSelectedAsync(item)">
+            @GetDisplayValue(item)
+        </div>
     }
-    <div class="lazy-load-select-items" id="@_scrollContainerId">
-        @foreach (var item in Items)
-        {
-            <div class="@SelectableItemClass"
-                 @onclick="async () => await HandleItemSelectedAsync(item)">
-                @GetDisplayValue(item)
-            </div>
-        }
 
-        @if (Items.Count == 0)
-        {
-            <div class="lazy-load-no-items">
-                @ValueNotFoundMessageText
-            </div>
-        }
-    </div>
+    @if (!Items.Any())
+    {
+        <div class="bzd-empty-message">@ValueNotFoundMessageText</div>
+    }
+
+    @if (ShowLoadingIndicator && _isLoading)
+    {
+        <BlazorDropLinearProgressBar Id="@LoadingIndicatorId" Class="@LoadingIndicatorClass"></BlazorDropLinearProgressBar>
+    }
 </div>

@@ -1,11 +1,11 @@
 window.BlazorDropSelect = (() => {
     const handlers = {};
     function getElementSafe(id) {
-        const el = document.getElementById(id);
-        if (!el) {
+        const element = document.getElementById(id);
+        if (!element) {
             console.warn(`BlazorDropSelect: Element not found: ${id}`);
         }
-        return el;
+        return element;
     }
 
     function setCleanup(key, fn) {
@@ -53,13 +53,13 @@ window.BlazorDropSelect = (() => {
             runCleanup(`click_${elementId}`);
         },
 
-        registerScrollHandler(dotNetHelper, containerId, methodName) {
+        registerScrollHandler(dotNetHelper, containerId, methodName, threshold = 50) {
             const container = getElementSafe(containerId);
             if (!container) return;
 
             const onScroll = () => {
-                const pixelsBeforeThreshold = 50;
-                if (container.scrollTop + container.clientHeight >= container.scrollHeight - pixelsBeforeThreshold) {
+
+                if (container.scrollTop + container.clientHeight >= container.scrollHeight - threshold) {
                     dotNetHelper.invokeMethodAsync(methodName);
                 }
             };
