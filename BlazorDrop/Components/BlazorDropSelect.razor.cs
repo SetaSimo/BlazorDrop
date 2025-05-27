@@ -5,16 +5,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace BlazorDrop
+namespace BlazorDrop.Components
 {
     public partial class BlazorDropSelect<T> : IAsyncDisposable, IDisposable
     {
-        [Parameter]
-        public string Id { get; set; } = Guid.NewGuid().ToString();
-
-        [Parameter]
-        public string Class { get; set; }
-
         [Parameter]
         public string Placeholder { get; set; }
 
@@ -22,16 +16,7 @@ namespace BlazorDrop
         public string ValueNotFoundMessageText { get; set; }
 
         [Parameter]
-        public int PageSize { get; set; } = 20;
-
-        [Parameter]
-        public int CurrentPage { get; set; } = 0;
-
-        [Parameter]
         public int UpdateSearchDelayInMilliseconds { get; set; } = 1000;
-
-        [Parameter]
-        public bool CanShowLoadingIndicator { get; set; } = true;
 
         [Parameter]
         public bool Disabled { get; set; }
@@ -45,31 +30,16 @@ namespace BlazorDrop
         [Parameter]
         public Func<T, string> DisplaySelector { get; set; }
 
-        /// <summary>
-        /// first parameter is page number, second parameter is page size
-        /// </summary>
-        [Parameter]
-        public Func<int, int, Task<IEnumerable<T>>> OnLoadItemsAsync { get; set; }
-
         [Parameter]
         public Func<string, Task<IEnumerable<T>>> OnSearchAsync { get; set; }
-
-        [Inject]
-        private IJSRuntime JSRuntime { get; set; }
-
-        private List<T> Items { get; set; } = new List<T>();
 
         private DotNetObjectReference<BlazorDropSelect<T>> _dotNetRef;
 
         private Guid _inputSelectorId = Guid.NewGuid();
-        private Guid _scrollContainerId = Guid.NewGuid();
 
         private string _searchText = string.Empty;
 
-        private bool _hasLoadedAllItems = false;
         private bool _isDropdownOpen = false;
-        private bool _isScrollHandlerAttached = false;
-        private bool _isLoading = false;
 
         private string GetDisplayValue(T item)
         {
@@ -95,12 +65,11 @@ namespace BlazorDrop
 
                 await JSRuntime.InvokeVoidAsync("BlazorDropSelect.initInputHandler", _dotNetRef, _inputSelectorId, UpdateSearchDelayInMilliseconds);
                 await JSRuntime.InvokeVoidAsync("BlazorDropSelect.registerClickOutsideHandler", _dotNetRef, _inputSelectorId);
-
             }
 
             if (_isDropdownOpen && _isScrollHandlerAttached is false && Disabled is false)
             {
-                await JSRuntime.InvokeVoidAsync("BlazorDropSelect.registerScrollHandler", _dotNetRef, _scrollContainerId);
+                await JSRuntime.InvokeVoidAsync("BlazorDropSelect.registerScrollHandler", _dotNetRef, _scrollContainerId, nameof(OnScrollToEndAsync));
                 _isScrollHandlerAttached = true;
             }
         }
@@ -125,19 +94,6 @@ namespace BlazorDrop
             }
 
             await SearchWithFilterAsync();
-        }
-
-        [JSInvokable]
-        public async Task OnScrollToEndAsync()
-        {
-            if (_isLoading)
-            {
-                return;
-            }
-
-            ShowLoadingIndicator(true);
-            await LoadNextPageAsync();
-            StateHasChanged();
         }
 
         [JSInvokable]
@@ -174,35 +130,6 @@ namespace BlazorDrop
             }
 
             UpdateSearchTextAfterSelect(Value);
-        }
-
-        private async Task LoadNextPageAsync()
-        {
-            CurrentPage++;
-            await LoadPageAsync(CurrentPage);
-        }
-
-        private async Task LoadPageAsync(int pageNumber)
-        {
-            if (OnLoadItemsAsync == null || _hasLoadedAllItems)
-                return;
-
-            ShowLoadingIndicator(true);
-
-            var newItems = await OnLoadItemsAsync(pageNumber, PageSize);
-            Items.AddRange(newItems);
-
-            _hasLoadedAllItems = newItems == null || newItems?.Count() == 0;
-            ShowLoadingIndicator(false);
-        }
-
-        private void ShowLoadingIndicator(bool isLoading)
-        {
-            if (CanShowLoadingIndicator)
-            {
-                _isLoading = isLoading;
-                StateHasChanged();
-            }
         }
 
         private void UpdateSearchTextAfterSelect(T value)

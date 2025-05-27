@@ -53,14 +53,14 @@ window.BlazorDropSelect = (() => {
             runCleanup(`click_${elementId}`);
         },
 
-        registerScrollHandler(dotNetHelper, containerId) {
+        registerScrollHandler(dotNetHelper, containerId, methodName) {
             const container = getElementSafe(containerId);
             if (!container) return;
 
             const onScroll = () => {
                 const pixelsBeforeThreshold = 50;
                 if (container.scrollTop + container.clientHeight >= container.scrollHeight - pixelsBeforeThreshold) {
-                    dotNetHelper.invokeMethodAsync('OnScrollToEndAsync');
+                    dotNetHelper.invokeMethodAsync(methodName);
                 }
             };
 

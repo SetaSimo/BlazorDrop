@@ -1,4 +1,6 @@
 ﻿@page "/"
+@using BlazorDrop.Components
+@using BlazorDrop.Dto
 @using BlazorDropTest
 @using BlazorDropTest.Shared
 @using BlazorDrop
@@ -40,6 +42,14 @@
                   CurrentPage="@(0)"
                   Value="@_selectedItemInDisabledSelect" />
 
+<BlazorDropList T="KeyValuePair<Guid, string>"
+                Value="_selectedListValue"
+                OnItemClick="OnValueChanged"
+                OnLoadItemsAsync="LoadPageAsync"
+                ValueNotFoundMessageText="not found">
+
+</BlazorDropList>
+
 @if (_selectedItemInDisabledSelect.Value != null)
 {
     <p>Selected: @_selectedItemInDisabledSelect.Value</p>
@@ -49,6 +59,8 @@
     private Dictionary<Guid, string> _testValues = new Dictionary<Guid, string>();
     private KeyValuePair<Guid, string> _selectedItem;
     private KeyValuePair<Guid, string> _selectedItemInDisabledSelect;
+
+    private KeyValuePair<Guid, string> _selectedListValue;
 
     protected override async Task OnInitializedAsync()
     {

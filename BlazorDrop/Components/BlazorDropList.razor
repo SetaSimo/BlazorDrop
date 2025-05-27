@@ -1,0 +1,27 @@
+﻿@using BlazorDrop.Components.Base
+@using BlazorDrop.Components.Loading
+@typeparam T
+@inherits BaseLazyLoadWithSelect<T>
+
+<div id="@Id" class="lazy-load-select-main @Class">
+    @if (_isLoading && CanShowLoadingIndicator)
+    {
+        <BlazorDropLoadingIndicator Id="@LoadingIndicatorId" Class="@LoadingIndicatorClass"></BlazorDropLoadingIndicator>
+    }
+    <div class="lazy-load-select-items" id="@_scrollContainerId">
+        @foreach (var item in Items)
+        {
+            <div class="@SelectableItemClass"
+                 @onclick="async () => await HandleItemSelectedAsync(item)">
+                @GetDisplayValue(item)
+            </div>
+        }
+
+        @if (Items.Count == 0)
+        {
+            <div class="lazy-load-no-items">
+                @ValueNotFoundMessageText
+            </div>
+        }
+    </div>
+</div>

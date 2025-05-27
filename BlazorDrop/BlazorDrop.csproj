@@ -4,14 +4,25 @@
         <RazorLangVersion>3.0</RazorLangVersion>
         <TargetFrameworks>netcoreapp3.1;net5.0;net6.0</TargetFrameworks>
     </PropertyGroup>
-
+    
+    <PropertyGroup>
+        <Version>1.0.2</Version>
+    </PropertyGroup>
+    
     <ItemGroup>
         <Compile Remove="BlazorDropLoadingIndicator.razor.cs" />
+        <Compile Remove="Components\BlazorDropSelect - Copy.razor.cs" />
+    </ItemGroup>
+    
+    <ItemGroup>
+      <Compile Include="Components\Image\LazyImage.razor" />
     </ItemGroup>
 
     <ItemGroup>
-        <Content Include="BlazorDropLoadingIndicator.razor.cs" />
-        <Content Include="BlazorDropSelect.razor.cs" />
+        <Content Include="Components\Loading\BlazorDropLoadingIndicator.razor.cs" />
+        <Content Include="Components\BlazorDropList.razor.cs" />
+        <Content Include="Components\BlazorDropSelect.razor.cs" />
+        <Content Include="Components\Image\LazyImageScroll.razor.cs" />
     </ItemGroup>
 
     <PropertyGroup>
