@@ -1,17 +1,17 @@
-﻿.lazy-load-select-main {
+﻿.bzd-container {
     display: inline-block;
     position: relative;
     font-family: 'Roboto', sans-serif;
     font-size: 16px;
 }
 
-.lazy-load-select-input-with-indication {
+.bzd-input-wrapper {
     position: relative;
     display: flex;
     align-items: center;
 }
 
-.lazy-load-select-input {
+.bzd-input {
     flex: 1;
     padding: 12px;
     border: none;
@@ -21,16 +21,16 @@
     transition: border-color 0.3s ease;
 }
 
-    .lazy-load-select-input:disabled {
+    .bzd-input:disabled {
         background-color: #f3f3f3;
         cursor: not-allowed;
     }
 
-    .lazy-load-select-input:focus {
+    .bzd-input:focus {
         border-color: #3f51b5;
     }
 
-.lazy-load-select-items {
+.bzd-dropdown {
     position: absolute;
     top: 100%;
     left: 0;
@@ -43,19 +43,20 @@
     max-height: 200px;
     margin-top: 4px;
     padding: 4px 0;
+    animation: bzd-fade-in 0.2s ease-out;
 }
 
-.lazy-load-select-item {
+.bzd-item {
     padding: 10px 16px;
     cursor: pointer;
     transition: background-color 0.2s ease;
 }
 
-    .lazy-load-select-item:hover {
+    .bzd-item:hover {
         background-color: rgba(63, 81, 181, 0.1);
     }
 
-.lazy-load-no-items {
+.bzd-empty-message {
     padding: 12px 16px;
     color: #9e9e9e;
     font-size: 14px;
@@ -63,11 +64,22 @@
     font-style: italic;
 }
 
-.lazy-load-select-items {
-    animation: fadeIn 0.2s ease-out;
+.bzd-list-container {
+    display: block;
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    background-color: #fff;
+    scroll-behavior: smooth;
 }
 
-.blazor-drop-loading-indicator {
+.bzd-item-selected {
+    background-color: rgba(63, 81, 181, 0.15);
+    font-weight: 500;
+}
+
+.bzd-spinner {
     position: absolute;
     right: 0.5rem;
     width: 1rem;
@@ -75,10 +87,32 @@
     border: 2px solid rgba(0, 0, 0, 0.2);
     border-top-color: #3498db;
     border-radius: 50%;
-    animation: spin 0.6s linear infinite;
+    animation: bzd-spin 0.6s linear infinite;
 }
 
-@keyframes fadeIn {
+.bzd-linear-progress {
+    height: 4px;
+    overflow: hidden;
+    background: #e0e0e0;
+    position: relative;
+}
+
+.bzd-linear-bar {
+    width: 100%;
+    height: 100%;
+    background: #3f51b5;
+    animation: bzd-linear-animation 1.5s infinite;
+}
+
+.bzd-list-loading-container {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background-color: #fff;
+}
+
+
+@keyframes bzd-fade-in {
     from {
         opacity: 0;
         transform: scaleY(0.95);
@@ -90,8 +124,18 @@
     }
 }
 
-@keyframes spin {
+@keyframes bzd-spin {
     to {
         transform: rotate(360deg);
+    }
+}
+
+@keyframes bzd-linear-animation {
+    0% {
+        transform: translateX(-100%);
+    }
+
+    100% {
+        transform: translateX(100%);
     }
 }

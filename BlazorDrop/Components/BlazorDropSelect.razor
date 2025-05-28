@@ -1,0 +1,42 @@
+﻿@using BlazorDrop.Components.Base
+@using BlazorDrop.Components.Loading
+@typeparam T
+@inherits BaseLazyLoadWithSelect<T>
+
+<div id="@Id" class="bzd-container @Class">
+
+    <div class="bzd-input-wrapper">
+        <input id="@_inputSelectorId"
+               class="bzd-input"
+               placeholder="@Placeholder"
+               disabled="@Disabled"
+               readonly="@Disabled"
+               @onclick="OpenDropdownAsync"
+               @bind-value="@_searchText"
+               @bind-value:event="oninput" />
+
+        @if (_isLoading && ShowLoadingIndicator)
+        {
+            <BlazorDropCircularProgressBar></BlazorDropCircularProgressBar>
+        }
+    </div>
+
+    @if (_isDropdownOpen)
+    {
+        <div class="bzd-dropdown" id="@_scrollContainerId" role="listbox" aria-expanded="true">
+            @foreach (var item in Items)
+            {
+                <div class="@GetSelectableItemClass(item)"
+                     role="option"
+                     @onclick="async () => await HandleItemSelectedAsync(item)">
+                    @GetDisplayValue(item)
+                </div>
+            }
+
+            @if (!Items.Any())
+            {
+                <div class="bzd-empty-message">@ValueNotFoundMessageText</div>
+            }
+        </div>
+    }
+</div>
