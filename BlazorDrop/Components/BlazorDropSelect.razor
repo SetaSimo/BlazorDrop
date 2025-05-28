@@ -17,16 +17,17 @@
 
         @if (_isLoading && ShowLoadingIndicator)
         {
-            <BlazorDropCircularProgressBar Id="@LoadingIndicatorId" Class="@LoadingIndicatorClass"></BlazorDropCircularProgressBar>
+            <BlazorDropCircularProgressBar></BlazorDropCircularProgressBar>
         }
     </div>
 
     @if (_isDropdownOpen)
     {
-        <div class="bzd-dropdown" id="@_scrollContainerId">
+        <div class="bzd-dropdown" id="@_scrollContainerId" role="listbox" aria-expanded="true">
             @foreach (var item in Items)
             {
                 <div class="@GetSelectableItemClass(item)"
+                     role="option"
                      @onclick="async () => await HandleItemSelectedAsync(item)">
                     @GetDisplayValue(item)
                 </div>

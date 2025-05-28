@@ -10,15 +10,6 @@ namespace BlazorDrop.Components.Base
     public abstract class BaseLazyScrollingComponent<T> : BaseLazyComponent
     {
         [Parameter]
-        public string LoadingIndicatorId { get; set; }
-
-        [Parameter]
-        public string LoadingIndicatorClass { get; set; }
-
-        [Parameter]
-        public string SelectedItemClass { get; set; }
-
-        [Parameter]
         public int PageSize { get; set; } = 20;
 
         [Parameter]

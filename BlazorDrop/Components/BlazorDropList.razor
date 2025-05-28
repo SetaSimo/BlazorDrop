@@ -4,6 +4,10 @@
 @inherits BaseLazyLoadWithSelect<T>
 
 <div id="@Id" class="bzd-container bzd-list-container @Class">
+    @if (ShowLoadingIndicator && _isLoading)
+    {
+        <BlazorDropLinearProgressBar Class="bzd-list-loading-container"></BlazorDropLinearProgressBar>
+    }
     @foreach (var item in Items)
     {
         <div class="@GetSelectableItemClass(item)"
@@ -15,10 +19,5 @@
     @if (!Items.Any())
     {
         <div class="bzd-empty-message">@ValueNotFoundMessageText</div>
-    }
-
-    @if (ShowLoadingIndicator && _isLoading)
-    {
-        <BlazorDropLinearProgressBar Id="@LoadingIndicatorId" Class="@LoadingIndicatorClass"></BlazorDropLinearProgressBar>
     }
 </div>

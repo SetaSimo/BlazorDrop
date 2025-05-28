@@ -104,6 +104,13 @@
     animation: bzd-linear-animation 1.5s infinite;
 }
 
+.bzd-list-loading-container {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background-color: #fff;
+}
+
 
 @keyframes bzd-fade-in {
     from {

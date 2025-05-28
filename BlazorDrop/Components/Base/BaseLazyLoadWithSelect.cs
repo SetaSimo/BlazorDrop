@@ -16,7 +16,7 @@ namespace BlazorDrop.Components.Base
         private const string DefaultSelectedItemClass = "bzd-item";
 
         protected string GetSelectableItemClass(T value) => IsItemSelected(value)
-            ? $"{DefaultSelectedItemClass} bzd-item-selected {SelectedItemClass}" : DefaultSelectedItemClass;
+            ? $"{DefaultSelectedItemClass} bzd-item-selected" : DefaultSelectedItemClass;
 
         protected virtual async Task HandleItemSelectedAsync(T value)
         {

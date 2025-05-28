@@ -37,21 +37,22 @@ Then reference the JavaScript and CSS in your host page:
 ## BlazorDropSelect 
 
 ```razor
-<BlazorDropSelect T="KeyValuePair<Guid, string>"
-                  DisplaySelector="@(x => x.Value)"
-                  OnLoadItemsAsync="LoadPageAsync"
-                  OnSearchAsync="SearchForItemAsync"
-                  OnValueChangedAsync="OnValueChanged"
-                  CanShowLoadingIndicator="true"
-                  Disabled="false"
-                  Placeholder="Select value"
-                  UpdateSearchDelayInMilliseconds="600"
-                  PageSize="10"
-                  ValueNotFoundMessageText="Value not found"
-                  Class="new-component-class"
-                  Id="select-inside-page"
-                  CurrentPage="@(0)"
-                  Value="@_selectedItem" />
+<BlazorDropSelect 
+        T="KeyValuePair<Guid, string>"
+        DisplaySelector="@(x => x.Value)"
+        OnLoadItemsAsync="LoadPageAsync"
+        OnSearchAsync="SearchForItemAsync"
+        OnItemClickAsync="OnValueChanged"
+        ShowLoadingIndicator="true"
+        Disabled="false"
+        Placeholder="Select value"
+        UpdateSearchDelayInMilliseconds="600"
+        PageSize="10"
+        ValueNotFoundMessageText="Not fount"
+        Class="active-select"
+        Id="select-enabled"
+        CurrentPage="@(0)"
+        Value="@_selectedItem" />
 ```
 
 ### Parameters
@@ -71,7 +72,7 @@ Then reference the JavaScript and CSS in your host page:
 | `DisplaySelector`          | `Func<T, string>`                   | Function to extract display text from item            |
 | `OnLoadItemsAsync`         | `Func<int, int, Task<IEnumerable<T>>>` | Async method for loading paginated items          |
 | `OnSearchAsync`            | `Func<string, Task<IEnumerable<T>>>`| Async method for searching items by text              |
-| `CanShowLoadingIndicator`  | `bool`                              | Show loading spinner during async operations          |
+| `ShowLoadingIndicator`  | `bool`                              | Show loading spinner during async operations          |
 | `Disabled`                 | `bool`                              | Disables the input and interaction with the dropdown  |
 
 ### Example Code
@@ -111,20 +112,18 @@ private Task<KeyValuePair<Guid, string>> OnValueChanged(KeyValuePair<Guid, strin
 
 `BlazorDropList` is a Blazor component designed to render a virtualized, scrollable dropdown-style list that supports lazy loading and custom item display. It is styled according to Material Design principles.
 
-<BlazorDropList T="KeyValuePair<Guid, string>"
-                DisplaySelector="@(x => x.Value)"
-                OnLoadItemsAsync="LoadPageAsync"
-                OnItemClickAsync="OnValueChanged"
-                ShowLoadingIndicator="true"
-                PageSize="10"
-                ValueNotFoundMessageText="Not fount"
-                Class="drop-list"
-                Id="drop-list"
-                CurrentPage="@(0)"
-                LoadingIndicatorClass="loading-class"
-                LoadingIndicatorId="@Guid.NewGuid().ToString()"
-                SelectedItemClass="selected-class"
-                Value="@_selectedItemInDisabledSelect">
+<BlazorDropList 
+        T="KeyValuePair<Guid, string>"
+        DisplaySelector="@(x => x.Value)"
+        OnLoadItemsAsync="LoadPageAsync"
+        OnItemClickAsync="OnValueChanged"
+        ShowLoadingIndicator="true"
+        PageSize="10"
+        ValueNotFoundMessageText="Not fount"
+        Class="drop-list"
+        Id="drop-list"
+        CurrentPage="@(0)"
+        Value="@_selectedItemInDisabledSelect">
 </BlazorDropList>
 
 ### Parameters
@@ -135,15 +134,12 @@ private Task<KeyValuePair<Guid, string>> OnValueChanged(KeyValuePair<Guid, strin
 | `Class`                    | `string`                               | Optional CSS class for the list container                    |
 | `DisplaySelector`          | `Func<T, string>`                      | Function to extract display text from each item              |
 | `Value`                    | `T`                                    | Currently selected item                                      |
-| `SelectedItemClass`        | `string`                               | CSS class applied to the selected item                       |
 | `PageSize`                 | `int`                                  | Number of items to load per page (default: 20)               |
 | `CurrentPage`              | `int`                                  | Index of the initial page (default: 0)                       |
 | `OnLoadItemsAsync`         | `Func<int, int, Task<IEnumerable<T>>>` | Async function for loading paginated items                   |
 | `OnItemClickAsync`         | `Func<T, Task>`                        | Async callback triggered when an item is clicked             |
 | `ValueNotFoundMessageText` | `string`                               | Message shown when no items are found                        |
 | `ShowLoadingIndicator`     | `bool`                                 | Whether to display a loading spinner during async data fetch |
-| `LoadingIndicatorClass`    | `string`                               | Optional CSS class for the loading indicator                 |
-| `LoadingIndicatorId`       | `string`                               | Optional ID for the loading indicator                        |
 
 ### Example Code
 ```csharp
@@ -179,7 +175,7 @@ private Task<KeyValuePair<Guid, string>> OnValueChanged(KeyValuePair<Guid, strin
 
 ## Loading Indicator Components
 
-`BlazorDropCircularProgressBar `  and `BlazorDropLinearProgressBar ` are a lightweight, reusable components that renders a Material-style loading bar used by `BlazorDropSelect` to indicate asynchronous data loading.
+`BlazorDropCircularProgressBar `  and `BlazorDropLinearProgressBar ` are a lightweight, reusable components that renders a Material-style loading bar to indicate asynchronous data loading.
 
 ### Parameters
 
