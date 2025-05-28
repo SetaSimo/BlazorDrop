@@ -8,13 +8,6 @@
     <PropertyGroup>
         <Version>1.0.3</Version>
     </PropertyGroup>
-    
-    <ItemGroup>
-        <Compile Remove="BlazorDropLoadingIndicator.razor.cs" />
-        <Compile Remove="Components\BlazorDropSelect - Copy.razor.cs" />
-        <Compile Remove="Components\Loading\BlazorDropCircularProgressBar - Copy.razor.cs" />
-    </ItemGroup>
-
 
     <ItemGroup>
         <Content Include="Components\Loading\BlazorDropLinearProgressBar.razor.cs" />
