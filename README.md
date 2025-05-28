@@ -1,7 +1,6 @@
 # BlazorDrop
-![image](https://github.com/user-attachments/assets/c62a8571-ae68-465f-9451-9b5970739717)
 
-`BlazorDropSelect` is a Blazor component for lazy-loading, searchable dropdowns with support for asynchronous data loading and virtual paging. It's styled using the Material design principles.
+**BlazorDrop** is a lightweight, Material-style Blazor component for creating searchable dropdowns with virtual scrolling, infinite lazy loading, and asynchronous data binding. Designed for Blazor Server and WebAssembly, this component helps you build modern forms with minimal effort.
 
 ## Features
 
@@ -33,8 +32,11 @@ Then reference the JavaScript and CSS in your host page:
 <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
 ```
 
+
 ## Usage
 ## BlazorDropSelect 
+
+![Select](https://github.com/user-attachments/assets/e55fec59-044d-4b8b-a4d0-643c7101606e)
 
 ```razor
 <BlazorDropSelect 
@@ -108,9 +110,11 @@ private Task<KeyValuePair<Guid, string>> OnValueChanged(KeyValuePair<Guid, strin
 }
 ```
 
-### BlazorDropList Component
+### BlazorDropList
 
 `BlazorDropList` is a Blazor component designed to render a virtualized, scrollable dropdown-style list that supports lazy loading and custom item display. It is styled according to Material Design principles.
+
+![List](https://github.com/user-attachments/assets/ab3eb98d-c179-4b7e-af3b-6109ded34b0f)
 
 <BlazorDropList 
         T="KeyValuePair<Guid, string>"
