@@ -51,7 +51,48 @@
         </div>
     </div>
 
-@*     <div class="row">
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <BlazorDropMultiSelect T="KeyValuePair<Guid, string>"
+                                   DisplaySelector="@(x => x.Value)"
+                                   OnLoadItemsAsync="LoadPageAsync"
+                                   OnSearchTextChangedAsync="SearchForItemAsync"
+                                   OnItemClickAsync="OnValueChanged"
+                                   ShowLoadingIndicator="true"
+                                   Disabled="false"
+                                   Placeholder="Select value"
+                                   UpdateSearchDelayInMilliseconds="600"
+                                   PageSize="10"
+                                   ValueNotFoundMessageText="Not fount"
+                                   Class="active-select"
+                                   CurrentPage="@(0)" />
+
+            @if (_selectedItem.Value != null)
+            {
+                <div class="mt-2 alert alert-success p-2">
+                    <strong>Selected:</strong> @_selectedItem.Value
+                </div>
+            }
+        </div>
+
+        <div class="col-md-6">
+            <BlazorDropMultiSelect T="KeyValuePair<Guid, string>"
+                                   DisplaySelector="@(x => x.Value)"
+                                   OnLoadItemsAsync="LoadPageAsync"
+                                   OnSearchTextChangedAsync="SearchForItemAsync"
+                                   OnItemClickAsync="OnValueChanged"
+                                   ShowLoadingIndicator="true"
+                                   Disabled="true"
+                                   Placeholder="Disabled select"
+                                   UpdateSearchDelayInMilliseconds="600"
+                                   PageSize="10"
+                                   ValueNotFoundMessageText="Not fount"
+                                   Class="disabled-select"
+                                   CurrentPage="@(0)" />
+        </div>
+    </div>
+
+    <div class="row">
         <div class="col-md-12">
             <label for="drop-list" class="form-label">List:</label>
             <BlazorDropList T="KeyValuePair<Guid, string>"
@@ -67,7 +108,7 @@
                             Value="@_selectedItemInDisabledSelect">
             </BlazorDropList>
         </div>
-    </div> *@
+    </div>
 
 </div>
 

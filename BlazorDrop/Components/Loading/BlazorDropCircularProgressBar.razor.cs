@@ -1,6 +1,4 @@
-﻿using BlazorDrop.Components.Base;
-
-namespace BlazorDrop
+﻿namespace BlazorDrop
 {
     public partial class BlazorDropLoadingIndicator
     {

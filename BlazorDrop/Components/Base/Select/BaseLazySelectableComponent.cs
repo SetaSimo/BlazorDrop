@@ -5,9 +5,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace BlazorDrop.Components.Base
+namespace BlazorDrop.Components.Base.Select
 {
-    public abstract class BaseLazyScrollingComponent<T> : BaseLazyComponent
+    public abstract class BaseLazySelectableComponent<T> : BaseLazyComponent
     {
         [Parameter]
         public int PageSize { get; set; } = 20;
@@ -31,18 +31,18 @@ namespace BlazorDrop.Components.Base
         public Func<T, string> DisplaySelector { get; set; }
 
         [Parameter]
-        public EventCallback<bool> OnLoadingStateChanged { get; set; }
-
-        [Parameter]
         public List<T> Items { get; set; } = new List<T>();
 
         [Inject]
         protected IJSRuntime JSRuntime { get; set; }
 
+        [Parameter]
+        public Func<T, Task<T>> OnItemClickAsync { get; set; }
+        protected const string DefaultSelectableItemClass = "bzd-item";
+
         protected bool _isLoading = false;
         protected bool _hasLoadedAllItems = false;
         protected bool _isScrollHandlerAttached = false;
-        protected bool _isFirstLoad = true;
 
         [JSInvokable]
         public async Task OnScrollToEndAsync()
@@ -64,7 +64,7 @@ namespace BlazorDrop.Components.Base
 
         protected virtual async Task LoadPageAsync(int pageNumber)
         {
-            if (OnLoadItemsAsync == null || _hasLoadedAllItems || (_isLoading && _isFirstLoad is false))
+            if (OnLoadItemsAsync == null || _hasLoadedAllItems || _isLoading)
                 return;
 
             await SetLoadingStateAsync(true);
@@ -76,21 +76,11 @@ namespace BlazorDrop.Components.Base
             await SetLoadingStateAsync(false);
         }
 
+
         protected async Task SetLoadingStateAsync(bool isLoading)
         {
             _isLoading = isLoading;
-
-            await NotifyLoadingChangedAsync(isLoading);
-
             StateHasChanged();
-        }
-
-        private async Task NotifyLoadingChangedAsync(bool isLoading)
-        {
-            if (OnLoadingStateChanged.HasDelegate)
-            {
-                await OnLoadingStateChanged.InvokeAsync(isLoading);
-            }
         }
 
         protected string GetDisplayValue(T item)
@@ -103,14 +93,29 @@ namespace BlazorDrop.Components.Base
             return DisplaySelector(item);
         }
 
-        protected async Task UnregisterScrollHandlerAsync(string scrollContainerId)
+        protected async Task RegisterScrollHandlerAsync<R>(string id, string methodName, DotNetObjectReference<R> dotNerRef) where R : class
         {
-            await JSRuntime.InvokeVoidAsync("BlazorDropSelect.unregisterScrollHandler", scrollContainerId);
+            await JSRuntime.InvokeVoidAsync("BlazorDropSelect.registerScrollHandler", dotNerRef, id, methodName);
+            _isScrollHandlerAttached = true;
         }
 
         protected async Task RegisterScrollHandler<R>(string id, string methodName, DotNetObjectReference<R> dotNerRef) where R : class
         {
             await JSRuntime.InvokeVoidAsync("BlazorDropSelect.registerScrollHandler", dotNerRef, id, methodName);
         }
+
+        protected async Task UnregisterScrollHandlerAsync(string scrollContainerId)
+        {
+            await JSRuntime.InvokeVoidAsync("BlazorDropSelect.unregisterScrollHandler", scrollContainerId);
+        }
+
+        protected string GetSelectableItemClass(T item) =>
+            IsItemSelected(item)
+                ? $"{DefaultSelectableItemClass} bzd-item-selected"
+                : DefaultSelectableItemClass;
+
+        protected abstract Task HandleItemSelectedAsync(T item);
+
+        protected abstract bool IsItemSelected(T item);
     }
 }
