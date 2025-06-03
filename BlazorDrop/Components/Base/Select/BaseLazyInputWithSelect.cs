@@ -78,7 +78,8 @@ namespace BlazorDrop.Components.Base.Select
         private async Task ResetSearchAsync()
         {
             CurrentPage = 0;
-            await LoadPageAsync(CurrentPage);
+            Items = new List<T>();
+            await LoadPageAsync(CurrentPage, true);
             StateHasChanged();
         }
 

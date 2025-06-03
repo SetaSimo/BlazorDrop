@@ -62,9 +62,9 @@ namespace BlazorDrop.Components.Base.Select
             await LoadPageAsync(CurrentPage);
         }
 
-        protected virtual async Task LoadPageAsync(int pageNumber)
+        protected virtual async Task LoadPageAsync(int pageNumber, bool ignoreLoadingState = false)
         {
-            if (OnLoadItemsAsync == null || _hasLoadedAllItems || _isLoading)
+            if (OnLoadItemsAsync == null || _hasLoadedAllItems || (_isLoading && ignoreLoadingState is false))
                 return;
 
             await SetLoadingStateAsync(true);
