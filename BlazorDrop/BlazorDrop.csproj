@@ -6,9 +6,15 @@
     </PropertyGroup>
     
     <PropertyGroup>
-        <Version>1.0.3</Version>
+        <Version>1.0.4</Version>
     </PropertyGroup>
-
+    
+    <PropertyGroup>
+        <PackageReleaseNotes>
+            See full changelog: https://github.com/SetaSimo/BlazorDrop/blob/main/CHANGELOG.md
+        </PackageReleaseNotes>
+    </PropertyGroup>
+    
     <ItemGroup>
         <Content Include="Components\Loading\BlazorDropLinearProgressBar.razor.cs" />
         <Content Include="Components\Loading\BlazorDropCircularProgressBar.razor.cs" />

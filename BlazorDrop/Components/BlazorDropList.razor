@@ -1,9 +1,10 @@
 ﻿@using BlazorDrop.Components.Base
+@using BlazorDrop.Components.Base.Select
 @using BlazorDrop.Components.Loading
 @typeparam T
-@inherits BaseLazyLoadWithSelect<T>
+@inherits BaseLazySelectableComponent<T>
 
-<div id="@Id" class="bzd-container bzd-list-container @Class">
+<div id="@Id" class="bzd-container bzd-list-container @Class" style="@Style">
     @if (ShowLoadingIndicator && _isLoading)
     {
         <BlazorDropLinearProgressBar Class="bzd-list-loading-container"></BlazorDropLinearProgressBar>

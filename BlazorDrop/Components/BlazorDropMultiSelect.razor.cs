@@ -1,23 +1,21 @@
 ﻿using BlazorDrop.Components.Base.Select;
-using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace BlazorDrop.Components
 {
-    public partial class BlazorDropSelect<T> : BaseLazyInputWithSelect<T>, IAsyncDisposable
+    public partial class BlazorDropMultiSelect<T> : BaseLazyInputWithSelect<T>, IAsyncDisposable
     {
-        [Parameter]
-        public T Value { get; set; }
+        private DotNetObjectReference<BlazorDropMultiSelect<T>> _dotNetRef;
 
-        private DotNetObjectReference<BlazorDropSelect<T>> _dotNetRef;
+        public List<T> SelectedValues { get; set; } = new List<T>();
 
         protected override async Task OnInitializedAsync()
         {
             await LoadPageAsync(CurrentPage);
-            UpdateSearchTextAfterSelect(Value);
         }
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -27,7 +25,7 @@ namespace BlazorDrop.Components
                 _dotNetRef = DotNetObjectReference.Create(this);
 
                 await JSRuntime.InvokeVoidAsync("BlazorDropSelect.initInputHandler", _dotNetRef, _inputSelectorId, UpdateSearchDelayInMilliseconds);
-                await JSRuntime.InvokeVoidAsync("BlazorDropSelect.registerClickOutsideHandler", _dotNetRef, _inputSelectorId);
+                await JSRuntime.InvokeVoidAsync("BlazorDropSelect.registerClickOutsideHandler", _dotNetRef, Id);
             }
 
             if (_isDropdownOpen && _isScrollHandlerAttached is false && Disabled is false)
@@ -40,41 +38,36 @@ namespace BlazorDrop.Components
         {
             await SetLoadingStateAsync(true);
 
-            if (OnItemClickAsync == null)
+            if (OnItemClickAsync != null)
             {
-                Value = value;
+                value = await OnItemClickAsync.Invoke(value);
+            }
+
+            var wasItemAdded = SelectedValues.Any(v => EqualityComparer<T>.Default.Equals(v, value));
+
+            if (wasItemAdded)
+            {
+                SelectedValues.Remove(value);
             }
             else
             {
-                await SetLoadingStateAsync(true);
-                Value = await OnItemClickAsync.Invoke(value);
-                await SetLoadingStateAsync(false);
+                SelectedValues.Add(value);
             }
-
-            UpdateSearchTextAfterSelect(Value);
 
             await SetLoadingStateAsync(false);
         }
 
-        private void UpdateSearchTextAfterSelect(T value)
-        {
-            if (value == null)
-                return;
-
-            _searchText = GetDisplayValue(value);
-        }
-
         protected override bool IsItemSelected(T item)
         {
-            return EqualityComparer<T>.Default.Equals(item, Value);
+            return SelectedValues.Contains(item);
         }
 
         public async ValueTask DisposeAsync()
         {
             if (_dotNetRef != null)
             {
-                await JSRuntime.InvokeVoidAsync("BlazorDropSelect.unregisterClickOutsideHandler", _inputSelectorId);
-                await UnregisterScrollHandlerAsync(_scrollSelectorId);
+                await JSRuntime.InvokeVoidAsync("BlazorDropSelect.unregisterClickOutsideHandler", Id);
+                await UnregisterScrollHandlerAsync(_scrollContainerId);
 
                 _dotNetRef.Dispose();
             }
