@@ -7,6 +7,7 @@
 - Asynchronous data loading by pages
 - Search by input text with debounce
 - Scroll-to-end detection for infinite loading
+- Multi-select support with dynamic list rendering
 - Value change binding
 - Custom display selector
 - Loading indicator while fetching data
@@ -116,6 +117,7 @@ private Task<KeyValuePair<Guid, string>> OnValueChanged(KeyValuePair<Guid, strin
 
 ![List](https://github.com/user-attachments/assets/ab3eb98d-c179-4b7e-af3b-6109ded34b0f)
 
+```razor
 <BlazorDropList 
         T="KeyValuePair<Guid, string>"
         DisplaySelector="@(x => x.Value)"
@@ -129,6 +131,7 @@ private Task<KeyValuePair<Guid, string>> OnValueChanged(KeyValuePair<Guid, strin
         CurrentPage="@(0)"
         Value="@_selectedItemInDisabledSelect">
 </BlazorDropList>
+```
 
 ### Parameters
 | Parameter                  | Type                                   | Description                                                  |
@@ -176,10 +179,35 @@ private Task<KeyValuePair<Guid, string>> OnValueChanged(KeyValuePair<Guid, strin
     return Task.FromResult(item);
 }
 ```
+### BlazorDropMultiSelect
+
+`BlazorDropMultiSelect` is an extension of `BlazorDropSelect` supporting multi-value selection with the same lazy-loading and searchable capabilities.
+
+```razor
+<BlazorDropMultiSelect 
+        T="KeyValuePair<Guid, string>"
+        DisplaySelector="@(x => x.Value)"
+        OnLoadItemsAsync="LoadPageAsync"
+        OnSearchAsync="SearchForItemAsync"
+        OnItemClickAsync="OnMultiSelectChanged"
+        ShowLoadingIndicator="true"
+        Disabled="false"
+        Placeholder="Select values"
+        PageSize="10"
+        Class="multi-select"
+        Id="select-multi"
+        CurrentPage="@(0)"
+        SelectedValues="@_selectedItems" />
+```
+Parameters (additional to `BlazorDropSelect`):
+| Parameter        | Type             | Description                                        |
+| ---------------- | ---------------- | -------------------------------------------------- |
+| `SelectedValues` | `IEnumerable<T>` | List of selected items in multi-select mode        |
+| `Style`          | `string`         | Optional inline CSS style applied to the container |
 
 ## Loading Indicator Components
 
-`BlazorDropCircularProgressBar `  and `BlazorDropLinearProgressBar ` are a lightweight, reusable components that renders a Material-style loading bar to indicate asynchronous data loading.
+`BlazorDropCircularProgressBar`  and `BlazorDropLinearProgressBar` are a lightweight, reusable components that renders a Material-style loading bar to indicate asynchronous data loading.
 
 ### Parameters
 
