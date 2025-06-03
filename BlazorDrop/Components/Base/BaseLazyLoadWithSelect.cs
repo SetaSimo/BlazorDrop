@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace BlazorDrop.Components.Base
@@ -13,10 +12,10 @@ namespace BlazorDrop.Components.Base
         [Parameter]
         public Func<T, Task<T>> OnItemClickAsync { get; set; }
 
-        private const string DefaultSelectedItemClass = "bzd-item";
+        private const string DefaultSelectableItemClass = "bzd-item";
 
         protected string GetSelectableItemClass(T value) => IsItemSelected(value)
-            ? $"{DefaultSelectedItemClass} bzd-item-selected" : DefaultSelectedItemClass;
+            ? $"{DefaultSelectableItemClass} bzd-item-selected" : DefaultSelectableItemClass;
 
         protected virtual async Task HandleItemSelectedAsync(T value)
         {
@@ -26,15 +25,15 @@ namespace BlazorDrop.Components.Base
             }
             else
             {
-                ShowLoadingProgress(true);
+                await SetLoadingStateAsync(true);
                 Value = await OnItemClickAsync.Invoke(value);
-                ShowLoadingProgress(false);
+                await SetLoadingStateAsync(false);
             }
         }
 
         protected bool IsItemSelected(T item)
         {
-            return EqualityComparer<T>.Default.Equals(item, Value);
+            return item.Equals(Value);
         }
     }
 }

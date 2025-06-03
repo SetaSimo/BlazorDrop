@@ -3,7 +3,7 @@
 @typeparam T
 @inherits BaseLazyLoadWithSelect<T>
 
-<div id="@Id" class="bzd-container @Class">
+<div id="@Id" class="bzd-container @Class" style="@Style">
 
     <div class="bzd-input-wrapper">
         <input id="@_inputSelectorId"
@@ -23,20 +23,19 @@
 
     @if (_isDropdownOpen)
     {
-        <div class="bzd-dropdown" id="@_scrollContainerId" role="listbox" aria-expanded="true">
-            @foreach (var item in Items)
-            {
-                <div class="@GetSelectableItemClass(item)"
-                     role="option"
-                     @onclick="async () => await HandleItemSelectedAsync(item)">
-                    @GetDisplayValue(item)
-                </div>
-            }
-
-            @if (!Items.Any())
-            {
-                <div class="bzd-empty-message">@ValueNotFoundMessageText</div>
-            }
-        </div>
+        <BlazorDropList Id="@_scrollSelectorId"
+                        Class="bzd-dropdown"
+                        ValueNotFoundMessageText="@ValueNotFoundMessageText"
+                        CurrentPage="@CurrentPage"
+                        PageSize="@PageSize"
+                        ShowLoadingIndicator="false"
+                        UseLazyLoad="@UseLazyLoad"
+                        OnItemClickAsync="@OnItemClickAsync"
+                        DisplaySelector="DisplaySelector"
+                        OnLoadItemsAsync="OnLoadItemsAsync"
+                        OnLoadingStateChanged="OnLoadingStateChangedAsync"
+                        Items="@Items"
+                        Value="Value">
+        </BlazorDropList>
     }
 </div>

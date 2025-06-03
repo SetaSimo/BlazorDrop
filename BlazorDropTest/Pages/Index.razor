@@ -11,7 +11,7 @@
             <BlazorDropSelect T="KeyValuePair<Guid, string>"
                               DisplaySelector="@(x => x.Value)"
                               OnLoadItemsAsync="LoadPageAsync"
-                              OnSearchAsync="SearchForItemAsync"
+                              OnSearchTextChangedAsync="SearchForItemAsync"
                               OnItemClickAsync="OnValueChanged"
                               ShowLoadingIndicator="true"
                               Disabled="false"
@@ -36,7 +36,7 @@
             <BlazorDropSelect T="KeyValuePair<Guid, string>"
                               DisplaySelector="@(x => x.Value)"
                               OnLoadItemsAsync="LoadPageAsync"
-                              OnSearchAsync="SearchForItemAsync"
+                              OnSearchTextChangedAsync="SearchForItemAsync"
                               OnItemClickAsync="OnValueChanged"
                               ShowLoadingIndicator="true"
                               Disabled="true"
@@ -51,7 +51,7 @@
         </div>
     </div>
 
-    <div class="row">
+@*     <div class="row">
         <div class="col-md-12">
             <label for="drop-list" class="form-label">List:</label>
             <BlazorDropList T="KeyValuePair<Guid, string>"
@@ -67,7 +67,7 @@
                             Value="@_selectedItemInDisabledSelect">
             </BlazorDropList>
         </div>
-    </div>
+    </div> *@
 
 </div>
 

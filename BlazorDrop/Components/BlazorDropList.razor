@@ -3,7 +3,7 @@
 @typeparam T
 @inherits BaseLazyLoadWithSelect<T>
 
-<div id="@Id" class="bzd-container bzd-list-container @Class">
+<div id="@Id" class="bzd-container bzd-list-container @Class" style="@Style">
     @if (ShowLoadingIndicator && _isLoading)
     {
         <BlazorDropLinearProgressBar Class="bzd-list-loading-container"></BlazorDropLinearProgressBar>

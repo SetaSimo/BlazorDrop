@@ -30,12 +30,19 @@ namespace BlazorDrop.Components.Base
         [Parameter]
         public Func<T, string> DisplaySelector { get; set; }
 
-        protected List<T> Items { get; set; } = new List<T>();
+        [Parameter]
+        public EventCallback<bool> OnLoadingStateChanged { get; set; }
 
-        protected Guid _scrollContainerId = Guid.NewGuid();
+        [Parameter]
+        public List<T> Items { get; set; } = new List<T>();
 
+        [Inject]
+        protected IJSRuntime JSRuntime { get; set; }
+
+        protected bool _isLoading = false;
         protected bool _hasLoadedAllItems = false;
         protected bool _isScrollHandlerAttached = false;
+        protected bool _isFirstLoad = true;
 
         [JSInvokable]
         public async Task OnScrollToEndAsync()
@@ -45,7 +52,6 @@ namespace BlazorDrop.Components.Base
                 return;
             }
 
-            ShowLoadingProgress(true);
             await LoadNextPageAsync();
             StateHasChanged();
         }
@@ -56,29 +62,37 @@ namespace BlazorDrop.Components.Base
             await LoadPageAsync(CurrentPage);
         }
 
-        protected async Task LoadPageAsync(int pageNumber)
+        protected virtual async Task LoadPageAsync(int pageNumber)
         {
-            if (OnLoadItemsAsync == null || _hasLoadedAllItems)
+            if (OnLoadItemsAsync == null || _hasLoadedAllItems || (_isLoading && _isFirstLoad is false))
                 return;
 
-            ShowLoadingProgress(true);
+            await SetLoadingStateAsync(true);
 
             var newItems = await OnLoadItemsAsync(pageNumber, PageSize);
             Items.AddRange(newItems);
 
             _hasLoadedAllItems = newItems == null || newItems?.Count() == 0;
-            ShowLoadingProgress(false);
+            await SetLoadingStateAsync(false);
         }
 
-        protected void ShowLoadingProgress(bool isLoading)
+        protected async Task SetLoadingStateAsync(bool isLoading)
         {
-            if (ShowLoadingIndicator)
+            _isLoading = isLoading;
+
+            await NotifyLoadingChangedAsync(isLoading);
+
+            StateHasChanged();
+        }
+
+        private async Task NotifyLoadingChangedAsync(bool isLoading)
+        {
+            if (OnLoadingStateChanged.HasDelegate)
             {
-                _isLoading = isLoading;
-                StateHasChanged();
+                await OnLoadingStateChanged.InvokeAsync(isLoading);
             }
         }
-        
+
         protected string GetDisplayValue(T item)
         {
             if (DisplaySelector == null)
@@ -89,9 +103,14 @@ namespace BlazorDrop.Components.Base
             return DisplaySelector(item);
         }
 
-        protected async Task UnregisterScrollHandlerAsync()
+        protected async Task UnregisterScrollHandlerAsync(string scrollContainerId)
         {
-            await JSRuntime.InvokeVoidAsync("BlazorDropSelect.unregisterScrollHandler", _scrollContainerId);
+            await JSRuntime.InvokeVoidAsync("BlazorDropSelect.unregisterScrollHandler", scrollContainerId);
+        }
+
+        protected async Task RegisterScrollHandler<R>(string id, string methodName, DotNetObjectReference<R> dotNerRef) where R : class
+        {
+            await JSRuntime.InvokeVoidAsync("BlazorDropSelect.registerScrollHandler", dotNerRef, id, methodName);
         }
     }
 }

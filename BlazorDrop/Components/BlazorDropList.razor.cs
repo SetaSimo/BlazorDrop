@@ -1,10 +1,11 @@
 ﻿using Microsoft.JSInterop;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace BlazorDrop.Components
 {
-    public partial class BlazorDropList<T> : IAsyncDisposable, IDisposable
+    public partial class BlazorDropList<T> : IAsyncDisposable
     {
         private DotNetObjectReference<BlazorDropList<T>> _dotNetRef;
 
@@ -13,8 +14,15 @@ namespace BlazorDrop.Components
 
         protected override async Task OnInitializedAsync()
         {
-            await LoadPageAsync(CurrentPage);
+            if (Items.Any() is false)
+            {
+                await SetLoadingStateAsync(true);
+                await LoadPageAsync(CurrentPage);
+                await SetLoadingStateAsync(false);
+            }
+
             _didLoadPageAfterInitialization = true;
+            _isFirstLoad = false;
         }
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -23,20 +31,15 @@ namespace BlazorDrop.Components
             {
                 _didAddScrollEvent = true;
                 _dotNetRef = DotNetObjectReference.Create(this);
-
-                await JSRuntime.InvokeVoidAsync("BlazorDropSelect.registerScrollHandler", _dotNetRef, Id, nameof(OnScrollToEndAsync));
+                await RegisterScrollHandler(Id, nameof(OnScrollToEndAsync), _dotNetRef);
             }
-        }
-
-        public void Dispose()
-        {
         }
 
         public async ValueTask DisposeAsync()
         {
             if (_dotNetRef != null)
             {
-                await UnregisterScrollHandlerAsync();
+                await UnregisterScrollHandlerAsync(Id);
 
                 _dotNetRef.Dispose();
             }

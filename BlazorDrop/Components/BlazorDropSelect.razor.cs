@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace BlazorDrop.Components
 {
-    public partial class BlazorDropSelect<T> : IAsyncDisposable, IDisposable
+    public partial class BlazorDropSelect<T> : IAsyncDisposable
     {
         [Parameter]
         public string Placeholder { get; set; }
@@ -19,11 +19,12 @@ namespace BlazorDrop.Components
         public bool Disabled { get; set; }
 
         [Parameter]
-        public Func<string, Task<IEnumerable<T>>> OnSearchAsync { get; set; }
+        public Func<string, Task<IEnumerable<T>>> OnSearchTextChangedAsync { get; set; }
 
         private DotNetObjectReference<BlazorDropSelect<T>> _dotNetRef;
 
-        private Guid _inputSelectorId = Guid.NewGuid();
+        private string _inputSelectorId = Guid.NewGuid().ToString();
+        private string _scrollSelectorId = Guid.NewGuid().ToString();
 
         private string _searchText = string.Empty;
 
@@ -31,8 +32,13 @@ namespace BlazorDrop.Components
 
         protected override async Task OnInitializedAsync()
         {
+            await SetLoadingStateAsync(true);
+
             await LoadPageAsync(CurrentPage);
             UpdateSearchTextAfterSelect(Value);
+
+            await SetLoadingStateAsync(false);
+            _isFirstLoad = false;
         }
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -44,24 +50,20 @@ namespace BlazorDrop.Components
                 await JSRuntime.InvokeVoidAsync("BlazorDropSelect.initInputHandler", _dotNetRef, _inputSelectorId, UpdateSearchDelayInMilliseconds);
                 await JSRuntime.InvokeVoidAsync("BlazorDropSelect.registerClickOutsideHandler", _dotNetRef, _inputSelectorId);
             }
-
-            if (_isDropdownOpen && _isScrollHandlerAttached is false && Disabled is false)
-            {
-                await JSRuntime.InvokeVoidAsync("BlazorDropSelect.registerScrollHandler", _dotNetRef, _scrollContainerId, nameof(OnScrollToEndAsync));
-                _isScrollHandlerAttached = true;
-            }
         }
 
         [JSInvokable]
         public async Task UpdateSearchListAfterInputAsync()
         {
-            if (OnSearchAsync == null)
+            if (OnSearchTextChangedAsync == null)
             {
-                throw new ArgumentException($"{nameof(OnSearchAsync)} is null");
+                throw new ArgumentException($"{nameof(OnSearchTextChangedAsync)} is null");
             }
 
             if (_isDropdownOpen is false)
+            {
                 await OpenDropdownAsync();
+            }
 
             _hasLoadedAllItems = false;
 
@@ -79,7 +81,7 @@ namespace BlazorDrop.Components
         {
             _isDropdownOpen = false;
             _isScrollHandlerAttached = false;
-            await UnregisterScrollHandlerAsync();
+            await UnregisterScrollHandlerAsync(_scrollSelectorId);
             StateHasChanged();
         }
 
@@ -113,19 +115,24 @@ namespace BlazorDrop.Components
             StateHasChanged();
         }
 
-        private async Task SearchWithFilterAsync()
+        private async Task OnLoadingStateChangedAsync(bool isLoading)
         {
-            ShowLoadingProgress(true);
-            await UnregisterScrollHandlerAsync();
-
-            var newItems = await OnSearchAsync(_searchText);
-            Items = newItems.ToList();
-
-            ShowLoadingProgress(false);
+            _isLoading = isLoading;
+            if (OnLoadingStateChanged.HasDelegate)
+            {
+                await OnLoadingStateChanged.InvokeAsync(isLoading);
+            }
         }
 
-        public void Dispose()
+        private async Task SearchWithFilterAsync()
         {
+            await SetLoadingStateAsync(true);
+            await UnregisterScrollHandlerAsync(_scrollSelectorId);
+
+            var newItems = await OnSearchTextChangedAsync(_searchText);
+            Items = newItems.ToList();
+
+            await SetLoadingStateAsync(false);
         }
 
         public async ValueTask DisposeAsync()
@@ -133,7 +140,7 @@ namespace BlazorDrop.Components
             if (_dotNetRef != null)
             {
                 await JSRuntime.InvokeVoidAsync("BlazorDropSelect.unregisterClickOutsideHandler", _inputSelectorId);
-                await UnregisterScrollHandlerAsync();
+                await UnregisterScrollHandlerAsync(_scrollSelectorId);
 
                 _dotNetRef.Dispose();
             }

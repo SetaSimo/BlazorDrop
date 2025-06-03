@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Components;
-using Microsoft.JSInterop;
 using System;
 namespace BlazorDrop.Components.Base
 {
@@ -11,9 +10,7 @@ namespace BlazorDrop.Components.Base
         [Parameter]
         public string Class { get; set; }
 
-        [Inject]
-        protected IJSRuntime JSRuntime { get; set; }
-
-        protected bool _isLoading = false;
+        [Parameter]
+        public string Style { get; set; }
     }
 }
