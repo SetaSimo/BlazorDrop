@@ -66,7 +66,7 @@ namespace BlazorDrop.Components
         {
             if (_dotNetRef != null)
             {
-                await JSRuntime.InvokeVoidAsync("BlazorDropSelect.unregisterClickOutsideHandler", _inputSelectorId);
+                await JSRuntime.InvokeVoidAsync("BlazorDropSelect.unregisterClickOutsideHandler", Id);
                 await UnregisterScrollHandlerAsync(_scrollContainerId);
 
                 _dotNetRef.Dispose();
