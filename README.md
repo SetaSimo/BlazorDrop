@@ -22,6 +22,14 @@ You can install the library via NuGet:
 ```bash
 dotnet add package BlazorDrop
 ```
+## Required Imports
+
+To use templates, make sure you import the following namespaces in your `.razor` file or `_Imports.razor`:
+
+```razor
+@using BlazorDrop
+@using BlazorDrop.Components
+```
 
 Then reference the JavaScript and CSS in your host page:
 
