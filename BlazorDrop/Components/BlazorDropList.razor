@@ -11,8 +11,10 @@
     }
     @foreach (var item in Items)
     {
-        <div class="@GetSelectableItemClass(item)"
-             @onclick="async () => await HandleItemSelectedAsync(item)">
+        <div role="option"
+             aria-selected="@IsItemSelected(item)"
+             class="@GetSelectableItemClass(item)"
+             @onclick="() => HandleItemSelectedAsync(item)">
             @if (ItemTemplate != null)
             {
                 @ItemTemplate(item)
