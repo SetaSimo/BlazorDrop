@@ -19,6 +19,7 @@
     outline: none;
     background: transparent;
     transition: border-color 0.3s ease;
+    text-overflow: ellipsis;
 }
 
     .bzd-input:disabled {

@@ -30,7 +30,14 @@
                 <div class="@GetSelectableItemClass(item)"
                      role="option"
                      @onclick="async () => await HandleItemSelectedAsync(item)">
-                    @GetDisplayValue(item)
+                    @if (ItemTemplate != null)
+                    {
+                        @ItemTemplate(item)
+                    }
+                    else
+                    {
+                        @GetDisplayValue(item)
+                    }
                 </div>
             }
 

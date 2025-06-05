@@ -32,6 +32,10 @@ namespace BlazorDrop.Components.Base.Select
 
         [Parameter]
         public List<T> Items { get; set; } = new List<T>();
+        
+        [Parameter]
+        public RenderFragment<T> ItemTemplate { get; set; }
+
 
         [Inject]
         protected IJSRuntime JSRuntime { get; set; }
@@ -53,7 +57,7 @@ namespace BlazorDrop.Components.Base.Select
             }
 
             await LoadNextPageAsync();
-            StateHasChanged();
+            await InvokeAsync(StateHasChanged);
         }
 
         protected async Task LoadNextPageAsync()
@@ -80,7 +84,7 @@ namespace BlazorDrop.Components.Base.Select
         protected async Task SetLoadingStateAsync(bool isLoading)
         {
             _isLoading = isLoading;
-            StateHasChanged();
+            await InvokeAsync(StateHasChanged);
         }
 
         protected string GetDisplayValue(T item)
