@@ -1,4 +1,4 @@
-## [1.0.4]
+## [1.0.6] - 2025-06-03
+
 ### Added
-- `BlazorDropMultiSelect<T>` component with support for multi-item selection.
-- `Style` parameter for inline CSS control on all components.
+- Support for custom item templates via `ItemTemplate` parameter in `BlazorDropSelect`, `BlazorDropMultiSelect`, and `BlazorDropList`.
