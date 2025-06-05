@@ -4,22 +4,23 @@
         <RazorLangVersion>3.0</RazorLangVersion>
         <TargetFrameworks>netcoreapp3.1;net5.0;net6.0</TargetFrameworks>
     </PropertyGroup>
-    
+
     <PropertyGroup>
-        <Version>1.0.4</Version>
+        <Version>1.0.6</Version>
     </PropertyGroup>
-    
+
     <PropertyGroup>
         <PackageReleaseNotes>
             See full changelog: https://github.com/SetaSimo/BlazorDrop/blob/main/CHANGELOG.md
         </PackageReleaseNotes>
     </PropertyGroup>
-    
+
     <ItemGroup>
         <Content Include="Components\Loading\BlazorDropLinearProgressBar.razor.cs" />
         <Content Include="Components\Loading\BlazorDropCircularProgressBar.razor.cs" />
         <Content Include="Components\BlazorDropList.razor.cs" />
         <Content Include="Components\BlazorDropSelect.razor.cs" />
+        <Content Include="Components\BlazorDropMultiSelect.razor.cs" />
     </ItemGroup>
 
     <PropertyGroup>

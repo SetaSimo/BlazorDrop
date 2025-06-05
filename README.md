@@ -13,6 +13,7 @@
 - Loading indicator while fetching data
 - Disabled state support
 - Designed for .NET Core 3.1
+- Custom item templates
 
 ## Installation
 
@@ -73,6 +74,7 @@ Then reference the JavaScript and CSS in your host page:
 | `UpdateSearchDelayInMilliseconds` | `int`                      | Debounce delay for input search (default: 1000 ms)    |
 | `Value`                    | `T`                                 | Currently selected item / default value               |
 | `OnValueChangedAsync`      | `Func<T, Task<T>>`                  | Callback for selection change                         |
+| `ItemTemplate`              | `RenderFragment<T>`                   | Optional custom template for each list item |
 | `DisplaySelector`          | `Func<T, string>`                   | Function to extract display text from item            |
 | `OnLoadItemsAsync`         | `Func<int, int, Task<IEnumerable<T>>>` | Async method for loading paginated items          |
 | `OnSearchAsync`            | `Func<string, Task<IEnumerable<T>>>`| Async method for searching items by text              |
@@ -145,6 +147,7 @@ private Task<KeyValuePair<Guid, string>> OnValueChanged(KeyValuePair<Guid, strin
 | `Value`                    | `T`                                    | Currently selected item                                      |
 | `PageSize`                 | `int`                                  | Number of items to load per page (default: 20)               |
 | `CurrentPage`              | `int`                                  | Index of the initial page (default: 0)                       |
+| `ItemTemplate`              | `RenderFragment<T>`                   | Optional custom template for each list item |
 | `OnLoadItemsAsync`         | `Func<int, int, Task<IEnumerable<T>>>` | Async function for loading paginated items                   |
 | `OnItemClickAsync`         | `Func<T, Task>`                        | Async callback triggered when an item is clicked             |
 | `ValueNotFoundMessageText` | `string`                               | Message shown when no items are found                        |
@@ -206,6 +209,32 @@ Parameters (additional to `BlazorDropSelect`):
 | ---------------- | ---------------- | -------------------------------------------------- |
 | `SelectedValues` | `IEnumerable<T>` | List of selected items in multi-select mode        |
 | `Style`          | `string`         | Optional inline CSS style applied to the container |
+
+## Custom Item Template
+
+You can customize how each dropdown item is rendered using the `ItemTemplate` parameter. This allows you to change formatting or apply custom styles.
+
+```razor
+<BlazorDropSelect T="KeyValuePair<Guid, string>"
+                  Placeholder="With custom template"
+                  Value="@_templatedSelect"
+                  DisplaySelector="@(x => x.Value)"
+                  OnLoadItemsAsync="LoadItemsPagedAsync"
+                  OnSearchTextChangedAsync="SearchByTextAsync"
+                  OnItemClickAsync="OnTemplateItemSelected"
+                  ValueNotFoundMessageText="Not found">
+
+    <ItemTemplate Context="item">
+        <span class="text-success fw-semibold">@item.Value</span>
+    </ItemTemplate>
+
+</BlazorDropSelect>
+```
+
+Notes
+- ItemTemplate accepts a RenderFragment<T> where T is the item type.
+- If specified, this replaces the default item rendering.
+- You can apply Bootstrap or custom CSS styles inside the template.
 
 ## Loading Indicator Components
 

@@ -1,4 +1,5 @@
 ﻿using BlazorDrop.Components.Base.Select;
+using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using System;
 using System.Collections.Generic;
@@ -9,6 +10,9 @@ namespace BlazorDrop.Components
 {
     public partial class BlazorDropMultiSelect<T> : BaseLazyInputWithSelect<T>, IAsyncDisposable
     {
+        [Parameter]
+        public Func<IEnumerable<T>, Task<string>> GetDisplayTextAsync { get; set; }
+
         private DotNetObjectReference<BlazorDropMultiSelect<T>> _dotNetRef;
 
         public List<T> SelectedValues { get; set; } = new List<T>();
@@ -52,6 +56,15 @@ namespace BlazorDrop.Components
             else
             {
                 SelectedValues.Add(value);
+            }
+
+            if (GetDisplayTextAsync == null)
+            {
+                _searchText = string.Join(", ", SelectedValues.Select(x => GetDisplayValue(x)));
+            }
+            else
+            {
+                _searchText = await GetDisplayTextAsync(SelectedValues);
             }
 
             await SetLoadingStateAsync(false);

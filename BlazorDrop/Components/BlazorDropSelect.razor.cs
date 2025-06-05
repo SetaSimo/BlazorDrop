@@ -46,9 +46,7 @@ namespace BlazorDrop.Components
             }
             else
             {
-                await SetLoadingStateAsync(true);
                 Value = await OnItemClickAsync.Invoke(value);
-                await SetLoadingStateAsync(false);
             }
 
             UpdateSearchTextAfterSelect(Value);

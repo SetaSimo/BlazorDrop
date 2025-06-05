@@ -1,156 +1,80 @@
 ﻿@page "/"
-@using BlazorDrop.Components
-@using BlazorDropTest
-@using BlazorDropTest.Shared
 @using BlazorDrop
+@using BlazorDrop.Components
 
-<div class="container mt-4">
-
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <BlazorDropSelect T="KeyValuePair<Guid, string>"
-                              DisplaySelector="@(x => x.Value)"
-                              OnLoadItemsAsync="LoadPageAsync"
-                              OnSearchTextChangedAsync="SearchForItemAsync"
-                              OnItemClickAsync="OnValueChanged"
-                              ShowLoadingIndicator="true"
-                              Disabled="false"
-                              Placeholder="Select value"
-                              UpdateSearchDelayInMilliseconds="600"
-                              PageSize="10"
-                              ValueNotFoundMessageText="Not fount"
-                              Class="active-select"
-                              Id="select-enabled"
-                              CurrentPage="@(0)"
-                              Value="@_selectedItem" />
-
-            @if (_selectedItem.Value != null)
-            {
-                <div class="mt-2 alert alert-success p-2">
-                    <strong>Selected:</strong> @_selectedItem.Value
-                </div>
-            }
-        </div>
-
-        <div class="col-md-6">
-            <BlazorDropSelect T="KeyValuePair<Guid, string>"
-                              DisplaySelector="@(x => x.Value)"
-                              OnLoadItemsAsync="LoadPageAsync"
-                              OnSearchTextChangedAsync="SearchForItemAsync"
-                              OnItemClickAsync="OnValueChanged"
-                              ShowLoadingIndicator="true"
-                              Disabled="true"
-                              Placeholder="Disabled select"
-                              UpdateSearchDelayInMilliseconds="600"
-                              PageSize="10"
-                              ValueNotFoundMessageText="Not fount"
-                              Class="disabled-select"
-                              Id="select-disabled"
-                              CurrentPage="@(0)"
-                              Value="@_selectedItemInDisabledSelect" />
+<div class="container mt-5">
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Single Select</h5>
+            <div class="form-group mb-2">
+                <BlazorDropSelect T="KeyValuePair<Guid, string>"
+                                  Placeholder="Select value"
+                                  Value="@_singleSelected"
+                                  DisplaySelector="@(x => x.Value)"
+                                  OnLoadItemsAsync="LoadItemsPagedAsync"
+                                  OnSearchTextChangedAsync="SearchByTextAsync"
+                                  OnItemClickAsync="OnItemSelected"
+                                  ValueNotFoundMessageText="Not found" />
+            </div>
+            <div class="text-muted">Selected: @_singleSelected.Value</div>
         </div>
     </div>
 
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <BlazorDropMultiSelect T="KeyValuePair<Guid, string>"
-                                   DisplaySelector="@(x => x.Value)"
-                                   OnLoadItemsAsync="LoadPageAsync"
-                                   OnSearchTextChangedAsync="SearchForItemAsync"
-                                   OnItemClickAsync="OnValueChanged"
-                                   ShowLoadingIndicator="true"
-                                   Disabled="false"
-                                   Placeholder="Select value"
-                                   UpdateSearchDelayInMilliseconds="600"
-                                   PageSize="10"
-                                   ValueNotFoundMessageText="Not fount"
-                                   Class="active-select"
-                                   CurrentPage="@(0)" />
-
-            @if (_selectedItem.Value != null)
-            {
-                <div class="mt-2 alert alert-success p-2">
-                    <strong>Selected:</strong> @_selectedItem.Value
-                </div>
-            }
-        </div>
-
-        <div class="col-md-6">
-            <BlazorDropMultiSelect T="KeyValuePair<Guid, string>"
-                                   DisplaySelector="@(x => x.Value)"
-                                   OnLoadItemsAsync="LoadPageAsync"
-                                   OnSearchTextChangedAsync="SearchForItemAsync"
-                                   OnItemClickAsync="OnValueChanged"
-                                   ShowLoadingIndicator="true"
-                                   Disabled="true"
-                                   Placeholder="Disabled select"
-                                   UpdateSearchDelayInMilliseconds="600"
-                                   PageSize="10"
-                                   ValueNotFoundMessageText="Not fount"
-                                   Class="disabled-select"
-                                   CurrentPage="@(0)" />
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Multi Select</h5>
+            <div class="form-group mb-2">
+                <BlazorDropMultiSelect T="KeyValuePair<Guid, string>"
+                                       Placeholder="Select multiple"
+                                       DisplaySelector="@(x => x.Value)"
+                                       OnLoadItemsAsync="LoadItemsPagedAsync"
+                                       OnSearchTextChangedAsync="SearchByTextAsync"
+                                       OnItemClickAsync="OnMultiItemSelected"
+                                       ValueNotFoundMessageText="Not found" />
+            </div>
+            <ul class="text-muted mb-0">
+                @foreach (var item in _multiSelected)
+                {
+                    <li>@item.Value</li>
+                }
+            </ul>
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-md-12">
-            <label for="drop-list" class="form-label">List:</label>
-            <BlazorDropList T="KeyValuePair<Guid, string>"
-                            DisplaySelector="@(x => x.Value)"
-                            OnLoadItemsAsync="LoadPageAsync"
-                            OnItemClickAsync="OnValueChanged"
-                            ShowLoadingIndicator="true"
-                            PageSize="10"
-                            ValueNotFoundMessageText="Not fount"
-                            Class="drop-list"
-                            Id="drop-list"
-                            CurrentPage="@(0)"
-                            Value="@_selectedItemInDisabledSelect">
-            </BlazorDropList>
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Custom Template</h5>
+            <div class="form-group mb-2">
+                <BlazorDropSelect T="KeyValuePair<Guid, string>"
+                                  Placeholder="With custom template"
+                                  Value="@_templatedSelect"
+                                  DisplaySelector="@(x => x.Value)"
+                                  OnLoadItemsAsync="LoadItemsPagedAsync"
+                                  OnSearchTextChangedAsync="SearchByTextAsync"
+                                  OnItemClickAsync="OnTemplateItemSelected"
+                                  ValueNotFoundMessageText="Not found">
+                    <ItemTemplate Context="item">
+                        <span class="text-success fw-semibold">@item.Value</span>
+                    </ItemTemplate>
+                </BlazorDropSelect>
+            </div>
+            <p class="text-muted">Selected: @_templatedSelect.Value</p>
         </div>
     </div>
 
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">BlazorDropList Example</h5>
+            <div class="form-group mb-2">
+                <BlazorDropList T="KeyValuePair<Guid, string>"
+                                Value="@_listSelected"
+                                DisplaySelector="@(x => x.Value)"
+                                OnLoadItemsAsync="LoadItemsPagedWithDelayAsync"
+                                OnItemClickAsync="OnListItemSelected"
+                                ValueNotFoundMessageText="Empty list"
+                                PageSize="15" />
+            </div>
+            <p class="text-muted">Selected: @_listSelected.Value</p>
+        </div>
+    </div>
 </div>
-
-@if (_selectedItemInDisabledSelect.Value != null)
-{
-    <p>Selected: @_selectedItemInDisabledSelect.Value</p>
-}
-
-@code {
-    private Dictionary<Guid, string> _testValues = new Dictionary<Guid, string>();
-    private KeyValuePair<Guid, string> _selectedItem;
-    private KeyValuePair<Guid, string> _selectedItemInDisabledSelect;
-
-    protected override async Task OnInitializedAsync()
-    {
-        for (int i = 0; i < 1000; i++)
-        {
-            var id = Guid.NewGuid();
-            _testValues.Add(id, $"Record {i}");
-        }
-    }
-
-    private async Task<IEnumerable<KeyValuePair<Guid, string>>> LoadPageAsync(int page, int pageSize)
-    {
-        var skip = page * pageSize;
-        var items = _testValues.Skip(skip).Take(pageSize);
-        await Task.Delay(1000);
-        return items;
-    }
-
-    private async Task<IEnumerable<KeyValuePair<Guid, string>>> SearchForItemAsync(string searchText)
-    {
-        var items = _testValues.Where(x => x.Value.Contains(searchText));
-        await Task.Delay(1000);
-        return items;
-    }
-
-    private async Task<KeyValuePair<Guid, string>> OnValueChanged(KeyValuePair<Guid, string> item)
-    {
-        await Task.Delay(1000);
-        _selectedItem = item;
-        StateHasChanged();
-        return _selectedItem;
-    }
-}
