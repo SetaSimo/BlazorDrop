@@ -27,9 +27,10 @@
         <div class="bzd-dropdown" id="@_scrollContainerId" role="listbox" aria-expanded="true">
             @foreach (var item in Items)
             {
-                <div class="@GetSelectableItemClass(item)"
-                     role="option"
-                     @onclick="async () => await HandleItemSelectedAsync(item)">
+                <div role="option"
+                     aria-selected="@IsItemSelected(item)"
+                     class="@GetSelectableItemClass(item)"
+                     @onclick="() => HandleItemSelectedAsync(item)">
                     @if (ItemTemplate != null)
                     {
                         @ItemTemplate(item)
