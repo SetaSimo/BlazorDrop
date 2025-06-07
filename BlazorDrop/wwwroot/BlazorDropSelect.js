@@ -13,7 +13,6 @@ window.BlazorDropSelect = (() => {
     }
 
     function runCleanup(key) {
-        console.log(key)
         const fn = handlers[key];
         if (fn) {
             fn();
@@ -40,7 +39,6 @@ window.BlazorDropSelect = (() => {
             const onClick = (event) => {
                 const dropdown = getElementSafe(elementId);
                 if (!dropdown || dropdown.contains(event.target)) return;
-                console.log(elementId)
                 dotNetHelper.invokeMethodAsync('OnClickOutsideAsync', elementId);
             };
 
