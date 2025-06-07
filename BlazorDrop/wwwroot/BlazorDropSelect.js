@@ -13,6 +13,7 @@ window.BlazorDropSelect = (() => {
     }
 
     function runCleanup(key) {
+        console.log(key)
         const fn = handlers[key];
         if (fn) {
             fn();
@@ -21,7 +22,7 @@ window.BlazorDropSelect = (() => {
     }
 
     return {
-        initInputHandler(dotnetHelper, elementId, delay) {
+        initInputHandler(dotnetHelper, elementId, delay, clickOutsideSelectorId) {
             const input = getElementSafe(elementId);
             if (!input) return;
 
@@ -30,17 +31,17 @@ window.BlazorDropSelect = (() => {
             input.addEventListener('input', () => {
                 clearTimeout(debounceTimeout);
                 debounceTimeout = setTimeout(() => {
-                    dotnetHelper.invokeMethodAsync('UpdateSearchListAfterInputAsync');
+                    dotnetHelper.invokeMethodAsync('UpdateSearchListAfterInputAsync', clickOutsideSelectorId);
                 }, delay);
             });
         },
 
-        registerClickOutsideHandler(dotNetHelper, elementId, selectorId) {
+        registerClickOutsideHandler(dotNetHelper, elementId) {
             const onClick = (event) => {
                 const dropdown = getElementSafe(elementId);
                 if (!dropdown || dropdown.contains(event.target)) return;
-
-                dotNetHelper.invokeMethodAsync('CloseDropdownAsync', selectorId);
+                console.log(elementId)
+                dotNetHelper.invokeMethodAsync('OnClickOutsideAsync', elementId);
             };
 
             document.addEventListener('click', onClick);

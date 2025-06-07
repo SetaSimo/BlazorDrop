@@ -1,6 +1,4 @@
-﻿using BlazorDrop.Components.Base.Select;
-using Microsoft.AspNetCore.Components;
-using Microsoft.JSInterop;
+﻿using Microsoft.AspNetCore.Components;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,17 +6,16 @@ using System.Threading.Tasks;
 
 namespace BlazorDrop.Components
 {
-    public partial class BlazorDropMultiSelect<T> : BaseLazyInputWithSelect<T>, IAsyncDisposable
+    public partial class BlazorDropMultiSelect<T> : IAsyncDisposable
     {
         [Parameter]
         public Func<IEnumerable<T>, Task<string>> GetDisplayTextAsync { get; set; }
-
-        private DotNetObjectReference<BlazorDropMultiSelect<T>> _dotNetRef;
 
         public List<T> SelectedValues { get; set; } = new List<T>();
 
         protected override async Task OnInitializedAsync()
         {
+            CreateDotNetRef();
             await LoadPageAsync(CurrentPage);
         }
 
@@ -26,13 +23,7 @@ namespace BlazorDrop.Components
         {
             if (firstRender && Disabled is false)
             {
-                _dotNetRef = DotNetObjectReference.Create(this);
-                await RegisterInputHandlerAsync(_inputSelectorId, Id, _dotNetRef);
-            }
-
-            if (_isDropdownOpen && _isScrollHandlerAttached is false && Disabled is false)
-            {
-                await RegisterScrollHandlerAsync(_scrollContainerId, nameof(OnScrollToEndAsync), _dotNetRef);
+                await RegisterInputHandlerAsync(_inputSelectorId, Id);
             }
         }
 
@@ -75,12 +66,13 @@ namespace BlazorDrop.Components
 
         public async ValueTask DisposeAsync()
         {
-            if (_dotNetRef != null)
+            if (DotNetRef != null)
             {
-                await JSRuntime.InvokeVoidAsync("BlazorDropSelect.unregisterClickOutsideHandler", Id);
+                await UnregisterClickOutsideHandler(Id);
                 await UnregisterScrollHandlerAsync(_scrollContainerId);
 
-                _dotNetRef.Dispose();
+                DotNetRef.Dispose();
+                _dotNetRefCreated = false;
             }
         }
     }
