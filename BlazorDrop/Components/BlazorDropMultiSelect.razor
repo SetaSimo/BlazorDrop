@@ -2,7 +2,7 @@
 @using BlazorDrop.Components.Base.Select
 @using BlazorDrop.Components.Loading
 @typeparam T
-@inherits BaseLazyInputWithSelect<T>
+@inherits BaseLazyInputWithSelect<T,BlazorDropMultiSelect<T>>
 
 <div id="@Id" class="bzd-container @Class" style="@Style">
 
@@ -12,7 +12,7 @@
                placeholder="@Placeholder"
                disabled="@Disabled"
                readonly="@Disabled"
-               @onclick="OpenDropdownAsync"
+               @onclick="() => OpenDropdownAsync(Id)"
                @bind-value="@_searchText"
                @bind-value:event="oninput" />
 

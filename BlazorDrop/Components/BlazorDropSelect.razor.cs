@@ -1,21 +1,18 @@
-﻿using BlazorDrop.Components.Base.Select;
-using Microsoft.AspNetCore.Components;
-using Microsoft.JSInterop;
+﻿using Microsoft.AspNetCore.Components;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace BlazorDrop.Components
 {
-    public partial class BlazorDropSelect<T> : BaseLazyInputWithSelect<T>, IAsyncDisposable
+    public partial class BlazorDropSelect<T> : IAsyncDisposable
     {
         [Parameter]
         public T Value { get; set; }
 
-        private DotNetObjectReference<BlazorDropSelect<T>> _dotNetRef;
-
         protected override async Task OnInitializedAsync()
         {
+            CreateDotNetRef();
             await LoadPageAsync(CurrentPage);
             UpdateSearchTextAfterSelect(Value);
         }
@@ -24,15 +21,12 @@ namespace BlazorDrop.Components
         {
             if (firstRender && Disabled is false)
             {
-                _dotNetRef = DotNetObjectReference.Create(this);
-
-                await JSRuntime.InvokeVoidAsync("BlazorDropSelect.initInputHandler", _dotNetRef, _inputSelectorId, UpdateSearchDelayInMilliseconds);
-                await JSRuntime.InvokeVoidAsync("BlazorDropSelect.registerClickOutsideHandler", _dotNetRef, _inputSelectorId);
+                await RegisterInputHandlerAsync(_inputSelectorId, _inputSelectorId);
             }
 
             if (_isDropdownOpen && _isScrollHandlerAttached is false && Disabled is false)
             {
-                await RegisterScrollHandlerAsync(_scrollContainerId, nameof(OnScrollToEndAsync), _dotNetRef);
+                await RegisterScrollHandlerAsync(_scrollContainerId, nameof(OnScrollToEndAsync), DotNetRef);
             }
         }
 
@@ -69,12 +63,12 @@ namespace BlazorDrop.Components
 
         public async ValueTask DisposeAsync()
         {
-            if (_dotNetRef != null)
+            if (DotNetRef != null)
             {
-                await JSRuntime.InvokeVoidAsync("BlazorDropSelect.unregisterClickOutsideHandler", _inputSelectorId);
+                await UnregisterClickOutsideHandler(_inputSelectorId);
                 await UnregisterScrollHandlerAsync(_scrollSelectorId);
 
-                _dotNetRef.Dispose();
+                DotNetRef.Dispose();
             }
         }
     }
