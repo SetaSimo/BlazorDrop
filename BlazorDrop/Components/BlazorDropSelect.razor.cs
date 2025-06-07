@@ -26,8 +26,7 @@ namespace BlazorDrop.Components
             {
                 _dotNetRef = DotNetObjectReference.Create(this);
 
-                await JSRuntime.InvokeVoidAsync("BlazorDropSelect.initInputHandler", _dotNetRef, _inputSelectorId, UpdateSearchDelayInMilliseconds);
-                await JSRuntime.InvokeVoidAsync("BlazorDropSelect.registerClickOutsideHandler", _dotNetRef, _inputSelectorId);
+                await RegisterInputHandlerAsync(_inputSelectorId, _inputSelectorId, _dotNetRef);
             }
 
             if (_isDropdownOpen && _isScrollHandlerAttached is false && Disabled is false)

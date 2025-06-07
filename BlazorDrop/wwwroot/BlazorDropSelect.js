@@ -35,12 +35,12 @@ window.BlazorDropSelect = (() => {
             });
         },
 
-        registerClickOutsideHandler(dotNetHelper, elementId) {
+        registerClickOutsideHandler(dotNetHelper, elementId, selectorId) {
             const onClick = (event) => {
                 const dropdown = getElementSafe(elementId);
                 if (!dropdown || dropdown.contains(event.target)) return;
 
-                dotNetHelper.invokeMethodAsync('CloseDropdownAsync');
+                dotNetHelper.invokeMethodAsync('CloseDropdownAsync', selectorId);
             };
 
             document.addEventListener('click', onClick);

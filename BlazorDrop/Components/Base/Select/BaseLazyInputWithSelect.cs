@@ -29,12 +29,15 @@ namespace BlazorDrop.Components.Base.Select
         protected string _scrollSelectorId = Guid.NewGuid().ToString();
         protected string _scrollContainerId = Guid.NewGuid().ToString();
 
+        protected const string ClickHandlerMethodName = "BlazorDropSelect.initInputHandler";
+        protected const string ClickOutsideHandlerMethodName = "BlazorDropSelect.handleClickOutside";
+
         [JSInvokable]
-        public async Task CloseDropdownAsync()
+        public async Task CloseDropdownAsync(string selectorId)
         {
             _isDropdownOpen = false;
             _isScrollHandlerAttached = false;
-            await UnregisterScrollHandlerAsync(_scrollSelectorId);
+            await UnregisterScrollHandlerAsync(selectorId);
             StateHasChanged();
         }
 
@@ -92,6 +95,12 @@ namespace BlazorDrop.Components.Base.Select
             Items = newItems.ToList();
 
             await SetLoadingStateAsync(false);
+        }
+
+        protected async Task RegisterInputHandlerAsync<R>(string inputHandlerSelectorId, string clickOutsideSelectorId, DotNetObjectReference<R> dotNerRef) where R : class
+        {
+            await JSRuntime.InvokeVoidAsync("BlazorDropSelect.initInputHandler", dotNerRef, inputHandlerSelectorId, UpdateSearchDelayInMilliseconds);
+            await JSRuntime.InvokeVoidAsync("BlazorDropSelect.registerClickOutsideHandler", dotNerRef, clickOutsideSelectorId);
         }
     }
 }
