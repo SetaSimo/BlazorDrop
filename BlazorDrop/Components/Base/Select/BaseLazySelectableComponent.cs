@@ -32,7 +32,7 @@ namespace BlazorDrop.Components.Base.Select
 
         [Parameter]
         public List<T> Items { get; set; } = new List<T>();
-        
+
         [Parameter]
         public RenderFragment<T> ItemTemplate { get; set; }
 
@@ -44,7 +44,8 @@ namespace BlazorDrop.Components.Base.Select
         public Func<T, Task<T>> OnItemClickAsync { get; set; }
 
         protected const string DefaultSelectableItemClass = "bzd-item";
-        protected const string ScrollHandlerMethodName = "BlazorDropSelect.registerScrollHandler";
+        protected const string RegisterScrollHandlerMethodName = "BlazorDropSelect.registerScrollHandler";
+        protected const string UnregisterScrollHandlerMethodName = "BlazorDropSelect.unregisterScrollHandler";
 
         protected bool _isLoading = false;
         protected bool _hasLoadedAllItems = false;
@@ -101,13 +102,13 @@ namespace BlazorDrop.Components.Base.Select
 
         protected async Task RegisterScrollHandlerAsync<R>(string id, string methodName, DotNetObjectReference<R> dotNerRef) where R : class
         {
-            await JSRuntime.InvokeVoidAsync(ScrollHandlerMethodName, dotNerRef, id, methodName);
+            await JSRuntime.InvokeVoidAsync(RegisterScrollHandlerMethodName, dotNerRef, id, methodName);
             _isScrollHandlerAttached = true;
         }
 
         protected async Task UnregisterScrollHandlerAsync(string scrollContainerId)
         {
-            await JSRuntime.InvokeVoidAsync("BlazorDropSelect.unregisterScrollHandler", scrollContainerId);
+            await JSRuntime.InvokeVoidAsync(UnregisterScrollHandlerMethodName, scrollContainerId);
         }
 
         protected string GetSelectableItemClass(T item) =>
