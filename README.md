@@ -272,7 +272,7 @@ Notes
 
 | BlazorDrop Version | Supported .NET Versions                        |
 | ------------------ | ---------------------------------------------- |
-| ≤ 1.0.6            | .NET Core 3.1                                  |
+| < 2.0.0            | .NET Core 3.1                                  |
 | ≥ 2.0.0            | .NET 6, .NET 8                                 |
 |                    | .NET 7, .NET 9 (not tested, potentially works) |
 
