@@ -11,7 +11,7 @@ namespace BlazorDrop.Components
         [Parameter]
         public Func<IEnumerable<T>, Task<string>> GetDisplayTextAsync { get; set; }
 
-        public List<T> SelectedValues { get; set; } = new List<T>();
+        public IList<T> SelectedValues { get; set; } = new List<T>();
 
         protected override async Task OnInitializedAsync()
         {
@@ -24,6 +24,11 @@ namespace BlazorDrop.Components
             if (firstRender && Disabled is false)
             {
                 await RegisterInputHandlerAsync(_inputSelectorId, Id);
+            }
+
+            if (_isDropdownOpen && _isScrollHandlerAttached is false && Disabled is false)
+            {
+                await RegisterScrollHandlerAsync(_scrollContainerId, nameof(OnScrollToEndAsync), DotNetRef);
             }
         }
 

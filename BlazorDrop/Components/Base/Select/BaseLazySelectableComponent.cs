@@ -31,7 +31,7 @@ namespace BlazorDrop.Components.Base.Select
         public Func<T, string> DisplaySelector { get; set; }
 
         [Parameter]
-        public List<T> Items { get; set; } = new List<T>();
+        public IEnumerable<T> Items { get; set; } = new List<T>();
 
         [Parameter]
         public RenderFragment<T> ItemTemplate { get; set; }
@@ -77,7 +77,7 @@ namespace BlazorDrop.Components.Base.Select
             await SetLoadingStateAsync(true);
 
             var newItems = await OnLoadItemsAsync(pageNumber, PageSize);
-            Items.AddRange(newItems);
+            Items = Items.Concat(newItems);
 
             _hasLoadedAllItems = newItems == null || newItems?.Count() == 0;
             await SetLoadingStateAsync(false);
