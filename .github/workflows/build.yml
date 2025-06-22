@@ -1,0 +1,31 @@
+name: build package
+on:
+  pull_request:
+    branches:
+      - main
+      - release
+  push:
+    branches:
+      - main
+      - release
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dotnet-version: ["8.x"]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup dotnet ${{ matrix.dotnet-version }}
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+          cache-dependency-path: BlazorDrop/packages.lock.json
+          cache: true
+      - name: Restore dependencies
+        run: dotnet restore --use-lock-file
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
+      - name: Test with the dotnet CLI
+        run: dotnet test --no-build --configuration Release
