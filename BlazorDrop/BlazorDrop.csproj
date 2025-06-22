@@ -12,10 +12,6 @@
     </ItemGroup>
     
     <PropertyGroup>
-        <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
-    </PropertyGroup>
-    
-    <PropertyGroup>
         <Version>2.0.2</Version>
     </PropertyGroup>
 
