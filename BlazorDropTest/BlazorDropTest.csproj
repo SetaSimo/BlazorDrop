@@ -13,4 +13,8 @@
     <ItemGroup>
       <Folder Include="Data\" />
     </ItemGroup>
+    
+    <PropertyGroup>
+        <IsPackable>false</IsPackable>
+    </PropertyGroup>
 </Project>
