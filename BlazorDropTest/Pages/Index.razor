@@ -1,8 +1,9 @@
 ﻿@page "/"
 @using BlazorDrop
 @using BlazorDrop.Components
+@using BlazorDrop.Components.Loading
 
-<div class="container mt-5">
+<div class="container">
     <div class="card mb-4">
         <div class="card-body">
             <h5 class="card-title">Single Select</h5>
@@ -77,4 +78,19 @@
             <p class="text-muted">Selected: @_listSelected.Value</p>
         </div>
     </div>
+
+    <div class="container">
+        <div class="mb-3">
+            <BlazorDropCircularProgressBar></BlazorDropCircularProgressBar>
+        </div>
+
+        <div class="mb-3">
+            <BlazorDropJumpingDotsLoadingIndicator></BlazorDropJumpingDotsLoadingIndicator>
+        </div>
+
+        <div class="mb-3">
+            <BlazorDropLinearProgressBar></BlazorDropLinearProgressBar>
+        </div>
+    </div>
+
 </div>

@@ -3,7 +3,7 @@
 
 # BlazorDrop
 
-**BlazorDrop** is a lightweight and flexible Blazor component library for building searchable, lazy-loaded dropdowns with support for virtual scrolling, async filtering, custom templates, and both single- and multi-select modes.
+**BlazorDrop** is a lightweight Blazor component library that provides customizable dropdowns with async loading, search, and virtualization support.
 
 ## Features
 
@@ -15,8 +15,9 @@
 - Custom display selector
 - Loading indicator while fetching data
 - Disabled state support
-- Designed for .NET Core 3.1
 - Custom item templates
+- Virtual scrolling for large datasets
+- Optional placeholder text
 
 ## Installation
 
@@ -33,6 +34,8 @@ To use templates, make sure you import the following namespaces in your `.razor`
 ```razor
 @using BlazorDrop
 @using BlazorDrop.Components
+//if loading bars required
+@using BlazorDrop.Components.Loading
 ```
 
 Then reference the JavaScript and CSS in your host page:
@@ -258,7 +261,7 @@ Notes
 
 ## Loading Indicator Components
 
-`BlazorDropCircularProgressBar` and `BlazorDropLinearProgressBar` are a lightweight, reusable components that renders a Material-style loading bar to indicate asynchronous data loading.
+`BlazorDropCircularProgressBar` and `BlazorDropLinearProgressBar` - loading bar to indicate data loading.
 
 ### Parameters
 
@@ -270,13 +273,8 @@ Notes
 
 ## .NET Compatibility
 
-| BlazorDrop Version | Supported .NET Versions                        |
-| ------------------ | ---------------------------------------------- |
-| < 2.0.0            | .NET Core 3.1                                  |
-| ≥ 2.0.0            | .NET 6, .NET 8                                 |
-|                    | .NET 7, .NET 9 (not tested, potentially works) |
-
-## Notes
-
-- Scroll detection triggers when the user reaches the bottom of the dropdown list.
-- Click outside and scroll handlers are automatically attached and detached.
+| BlazorDrop Version | Supported .NET Versions                                 |
+| ------------------ | ------------------------------------------------------- |
+| < 2.0.0            | .NET Core 3.1                                           |
+| ≥ 2.0.0            | .NET 6, .NET 8                                          |
+|                    | .NET 7, .NET 9, .NET 10 (not tested, potentially works) |
