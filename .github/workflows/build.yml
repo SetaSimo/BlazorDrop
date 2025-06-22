@@ -21,6 +21,7 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ matrix.dotnet-version }}
+          cache-dependency-path: BlazorDrop/packages.lock.json
           cache: true
       - name: Restore dependencies
         run: dotnet restore --use-lock-file
