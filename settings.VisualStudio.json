@@ -1,7 +1,7 @@
 /* Visual Studio Settings File */
 {
-  "languages.webForms.tabs.character": "space",
-  "languages.csharp.tabs.character": "space",
-  "languages.defaults.tabs.character": "space",
+  "languages.webForms.tabs.character": "tab",
+  "languages.csharp.tabs.character": "tab",
+  "languages.defaults.tabs.character": "tab",
   "languages.typeScript.tabs.character": "space"
 }
