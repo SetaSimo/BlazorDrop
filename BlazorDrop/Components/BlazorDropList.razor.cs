@@ -8,12 +8,10 @@ using System.Threading.Tasks;
 
 namespace BlazorDrop.Components
 {
-    public partial class BlazorDropList<T> : BaseLazySelectableComponent<T>, IAsyncDisposable
+    public partial class BlazorDropList<T> : BaseLazySelectableComponent<T, BlazorDropList<T>>, IAsyncDisposable
     {
         [Parameter]
         public T Value { get; set; }
-
-        private DotNetObjectReference<BlazorDropList<T>> _dotNetRef;
 
         private bool _didLoadPageAfterInitialization = false;
         private bool _didAddScrollEvent = false;
@@ -33,8 +31,9 @@ namespace BlazorDrop.Components
             if (_didLoadPageAfterInitialization && _didAddScrollEvent is false)
             {
                 _didAddScrollEvent = true;
-                _dotNetRef = DotNetObjectReference.Create(this);
-                await RegisterScrollAsync(Id, _dotNetRef);
+                CreateDotNetRef();
+
+                await RegisterScrollAsync(Id, DotNetRef);
             }
         }
 
@@ -63,11 +62,11 @@ namespace BlazorDrop.Components
 
         public async ValueTask DisposeAsync()
         {
-            if (_dotNetRef != null)
+            if (DotNetRef != null)
             {
                 await UnregisterScrollAsync(Id);
 
-                _dotNetRef.Dispose();
+                DotNetRef.Dispose();
             }
         }
     }

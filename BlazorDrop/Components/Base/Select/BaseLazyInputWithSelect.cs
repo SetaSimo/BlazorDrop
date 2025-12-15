@@ -9,7 +9,7 @@ using BlazorDrop.Interfaces;
 namespace BlazorDrop.Components.Base.Select
 {
     public abstract class BaseLazyInputWithSelect<T, R>
-        : BaseLazySelectableComponent<T>
+        : BaseLazySelectableComponent<T, R>
         where R : class
     {
         [Parameter]
@@ -30,12 +30,9 @@ namespace BlazorDrop.Components.Base.Select
         [Inject]
         protected IBlazorDropInputInteropService InputInterop { get; set; }
 
-        protected DotNetObjectReference<R> DotNetRef { get; private set; }
-
         protected string _searchText = string.Empty;
 
         protected bool _isDropdownOpen;
-        protected bool _dotNetRefCreated;
 
         protected readonly string _inputSelectorId = Guid.NewGuid().ToString();
         protected readonly string _scrollContainerId = Guid.NewGuid().ToString();
@@ -108,21 +105,12 @@ namespace BlazorDrop.Components.Base.Select
             Items = items?.ToList() ?? new List<T>();
         }
 
-        protected void CreateDotNetRef()
-        {
-            if (_dotNetRefCreated)
-            {
-                return;
-            }
-
-            DotNetRef = DotNetObjectReference.Create((R)(object)this);
-            _dotNetRefCreated = true;
-        }
-
         protected async Task RegisterInputAsync(string clickOutsideContainerId)
         {
             if (Disabled)
+            {
                 return;
+            }
 
             CreateDotNetRef();
 

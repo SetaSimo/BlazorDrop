@@ -2,5 +2,6 @@
 {
   "languages.webForms.tabs.character": "space",
   "languages.csharp.tabs.character": "space",
-  "languages.defaults.tabs.character": "space"
+  "languages.defaults.tabs.character": "space",
+  "languages.typeScript.tabs.character": "space"
 }

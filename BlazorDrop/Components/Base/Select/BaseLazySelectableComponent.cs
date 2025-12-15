@@ -8,7 +8,9 @@ using BlazorDrop.Interfaces;
 
 namespace BlazorDrop.Components.Base.Select
 {
-    public abstract class BaseLazySelectableComponent<T> : BaseLazyComponent
+    public abstract class BaseLazySelectableComponent<T, R> : BaseLazyComponent
+        where R : class
+
     {
         [Parameter]
         public int PageSize { get; set; } = 20;
@@ -43,11 +45,14 @@ namespace BlazorDrop.Components.Base.Select
         [Inject]
         protected IBlazorDropScrollInteropService ScrollInterop { get; set; }
 
+        protected DotNetObjectReference<R> DotNetRef { get; private set; }
+
         protected const string DefaultSelectableItemClass = "bzd-item";
 
         protected bool _isLoading;
         protected bool _hasLoadedAllItems;
         protected bool _isScrollHandlerAttached;
+        protected bool _dotNetRefCreated;
 
         // ===== JS CALLBACK =====
         [JSInvokable]
@@ -127,6 +132,17 @@ namespace BlazorDrop.Components.Base.Select
 
             await ScrollInterop.UnregisterAsync(containerId);
             _isScrollHandlerAttached = false;
+        }
+
+        protected void CreateDotNetRef()
+        {
+            if (_dotNetRefCreated)
+            {
+                return;
+            }
+
+            DotNetRef = DotNetObjectReference.Create((R)(object)this);
+            _dotNetRefCreated = true;
         }
 
         protected abstract Task HandleItemSelectedAsync(T item);
