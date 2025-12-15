@@ -14,7 +14,11 @@ namespace BlazorDrop.Components
 		{
 			CreateDotNetRef();
 			await LoadPageAsync(CurrentPage);
-			UpdateSearchTextAfterSelect(Value);
+
+			if (Value != null)
+			{
+				UpdateSearchTextAfterSelect(Value);
+			}
 		}
 
 		protected override async Task OnAfterRenderAsync(bool firstRender)
