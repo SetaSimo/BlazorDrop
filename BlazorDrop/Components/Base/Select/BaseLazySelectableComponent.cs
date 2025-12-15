@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using BlazorDrop.Interfaces;
 
 namespace BlazorDrop.Components.Base.Select
 {
@@ -22,7 +23,7 @@ namespace BlazorDrop.Components.Base.Select
         public bool ShowLoadingIndicator { get; set; } = true;
 
         /// <summary>
-        /// first parameter is page number, second parameter is page size
+        /// pageNumber, pageSize
         /// </summary>
         [Parameter]
         public Func<int, int, Task<IEnumerable<T>>> OnLoadItemsAsync { get; set; }
@@ -36,25 +37,23 @@ namespace BlazorDrop.Components.Base.Select
         [Parameter]
         public RenderFragment<T> ItemTemplate { get; set; }
 
-
-        [Inject]
-        protected IJSRuntime JSRuntime { get; set; }
-
         [Parameter]
         public Func<T, Task<T>> OnItemClickAsync { get; set; }
 
+        [Inject]
+        protected IBlazorDropScrollInteropService ScrollInterop { get; set; }
+
         protected const string DefaultSelectableItemClass = "bzd-item";
-        protected const string RegisterScrollHandlerMethodName = "BlazorDropSelect.registerScrollHandler";
-        protected const string UnregisterScrollHandlerMethodName = "BlazorDropSelect.unregisterScrollHandler";
 
-        protected bool _isLoading = false;
-        protected bool _hasLoadedAllItems = false;
-        protected bool _isScrollHandlerAttached = false;
+        protected bool _isLoading;
+        protected bool _hasLoadedAllItems;
+        protected bool _isScrollHandlerAttached;
 
+        // ===== JS CALLBACK =====
         [JSInvokable]
         public async Task OnScrollToEndAsync()
         {
-            if (_isLoading)
+            if (_isLoading || _hasLoadedAllItems)
             {
                 return;
             }
@@ -72,18 +71,24 @@ namespace BlazorDrop.Components.Base.Select
 
         protected virtual async Task LoadPageAsync(int pageNumber, bool ignoreLoadingState = false)
         {
-            if (OnLoadItemsAsync == null || _hasLoadedAllItems || (_isLoading && ignoreLoadingState is false))
+            if (OnLoadItemsAsync == null ||
+                _hasLoadedAllItems ||
+                (_isLoading && !ignoreLoadingState))
+            {
                 return;
+            }
 
             await SetLoadingStateAsync(true);
 
-            var newItems = await OnLoadItemsAsync(pageNumber, PageSize);
+            var newItems = (await OnLoadItemsAsync(pageNumber, PageSize))?.ToList()
+                           ?? new List<T>();
+
             Items = Items.Concat(newItems);
 
-            _hasLoadedAllItems = newItems == null || newItems.Count() < PageSize;
+            _hasLoadedAllItems = newItems.Count < PageSize;
+
             await SetLoadingStateAsync(false);
         }
-
 
         protected async Task SetLoadingStateAsync(bool isLoading)
         {
@@ -92,33 +97,39 @@ namespace BlazorDrop.Components.Base.Select
         }
 
         protected string GetDisplayValue(T item)
-        {
-            if (DisplaySelector == null)
-            {
-                return item.ToString();
-            }
+            => DisplaySelector?.Invoke(item) ?? item?.ToString();
 
-            return DisplaySelector(item);
-        }
-
-        protected async Task RegisterScrollHandlerAsync<R>(string id, string methodName, DotNetObjectReference<R> dotNerRef) where R : class
-        {
-            await JSRuntime.InvokeVoidAsync(RegisterScrollHandlerMethodName, dotNerRef, id, methodName);
-            _isScrollHandlerAttached = true;
-        }
-
-        protected async Task UnregisterScrollHandlerAsync(string scrollContainerId)
-        {
-            await JSRuntime.InvokeVoidAsync(UnregisterScrollHandlerMethodName, scrollContainerId);
-        }
-
-        protected string GetSelectableItemClass(T item) =>
-            IsItemSelected(item)
+        protected string GetSelectableItemClass(T item)
+            => IsItemSelected(item)
                 ? $"{DefaultSelectableItemClass} bzd-item-selected"
                 : DefaultSelectableItemClass;
 
-        protected abstract Task HandleItemSelectedAsync(T item);
+        protected async Task RegisterScrollAsync<R>(
+            string containerId,
+            DotNetObjectReference<R> dotNetRef)
+            where R : class
+        {
+            if (_isScrollHandlerAttached)
+                return;
 
+            await ScrollInterop.RegisterAsync(
+                containerId,
+                nameof(OnScrollToEndAsync),
+                dotNetRef);
+
+            _isScrollHandlerAttached = true;
+        }
+
+        protected async Task UnregisterScrollAsync(string containerId)
+        {
+            if (!_isScrollHandlerAttached)
+                return;
+
+            await ScrollInterop.UnregisterAsync(containerId);
+            _isScrollHandlerAttached = false;
+        }
+
+        protected abstract Task HandleItemSelectedAsync(T item);
         protected abstract bool IsItemSelected(T item);
     }
 }

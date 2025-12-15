@@ -23,12 +23,12 @@ namespace BlazorDrop.Components
         {
             if (firstRender && Disabled is false)
             {
-                await RegisterInputHandlerAsync(_inputSelectorId, Id);
+                await RegisterInputAsync(_inputSelectorId);
             }
 
             if (_isDropdownOpen && _isScrollHandlerAttached is false && Disabled is false)
             {
-                await RegisterScrollHandlerAsync(_scrollContainerId, nameof(OnScrollToEndAsync), DotNetRef);
+                await RegisterScrollAsync(_scrollContainerId, DotNetRef);
             }
         }
 
@@ -73,8 +73,8 @@ namespace BlazorDrop.Components
         {
             if (DotNetRef != null)
             {
-                await UnregisterClickOutsideHandler(Id);
-                await UnregisterScrollHandlerAsync(_scrollContainerId);
+                await ClickOutsideService.UnregisterAsync(Id);
+                await UnregisterScrollAsync(_scrollContainerId);
 
                 DotNetRef.Dispose();
                 _dotNetRefCreated = false;

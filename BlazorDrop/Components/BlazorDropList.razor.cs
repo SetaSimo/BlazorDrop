@@ -34,7 +34,7 @@ namespace BlazorDrop.Components
             {
                 _didAddScrollEvent = true;
                 _dotNetRef = DotNetObjectReference.Create(this);
-                await RegisterScrollHandlerAsync(Id, nameof(OnScrollToEndAsync), _dotNetRef);
+                await RegisterScrollAsync(Id, _dotNetRef);
             }
         }
 
@@ -65,7 +65,7 @@ namespace BlazorDrop.Components
         {
             if (_dotNetRef != null)
             {
-                await UnregisterScrollHandlerAsync(Id);
+                await UnregisterScrollAsync(Id);
 
                 _dotNetRef.Dispose();
             }

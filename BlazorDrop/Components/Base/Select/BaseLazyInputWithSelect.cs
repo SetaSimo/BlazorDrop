@@ -4,10 +4,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using BlazorDrop.Interfaces;
 
 namespace BlazorDrop.Components.Base.Select
 {
-    public abstract class BaseLazyInputWithSelect<T, R> : BaseLazySelectableComponent<T> where R : class
+    public abstract class BaseLazyInputWithSelect<T, R>
+        : BaseLazySelectableComponent<T>
+        where R : class
     {
         [Parameter]
         public string Placeholder { get; set; }
@@ -21,50 +24,48 @@ namespace BlazorDrop.Components.Base.Select
         [Parameter]
         public Func<string, Task<IEnumerable<T>>> SearchAsync { get; set; }
 
+        [Inject]
+        protected IBlazorDropClickOutsideService ClickOutsideService { get; set; }
+
+        [Inject]
+        protected IBlazorDropInputInteropService InputInterop { get; set; }
+
         protected DotNetObjectReference<R> DotNetRef { get; private set; }
 
         protected string _searchText = string.Empty;
 
-        protected bool _isDropdownOpen = false;
-        protected bool _dotNetRefCreated = false;
+        protected bool _isDropdownOpen;
+        protected bool _dotNetRefCreated;
 
-        protected string _inputSelectorId = Guid.NewGuid().ToString();
-        protected string _scrollSelectorId = Guid.NewGuid().ToString();
-        protected string _scrollContainerId = Guid.NewGuid().ToString();
-
-        private const string BaseMethodName = "BlazorDropSelect";
-        private const string ClickHandlerMethodName = $"{BaseMethodName}.initInputHandler";
-        private const string UnregisterClickOutsideMethodName = $"{BaseMethodName}.unregisterClickOutsideHandler";
-        private const string RegisterClickOutsideHandlerMethodName = $"{BaseMethodName}.registerClickOutsideHandler";
+        protected readonly string _inputSelectorId = Guid.NewGuid().ToString();
+        protected readonly string _scrollContainerId = Guid.NewGuid().ToString();
 
         [JSInvokable]
-        public async Task OnClickOutsideAsync(string selectorId)
+        public async Task OnClickOutsideAsync(string containerId)
         {
             _isDropdownOpen = false;
             _isScrollHandlerAttached = false;
 
-            await UnregisterScrollHandlerAsync(selectorId);
-            await UnregisterClickOutsideHandler(selectorId);
+            await UnregisterScrollAsync(containerId);
+            await ClickOutsideService.UnregisterAsync(containerId);
 
             StateHasChanged();
         }
 
         [JSInvokable]
-        public async Task UpdateSearchListAfterInputAsync(string clickOutsideSelectorId)
+        public async Task UpdateSearchListAfterInputAsync(string containerId)
         {
             if (SearchAsync == null)
             {
-                throw new ArgumentException($"{nameof(SearchAsync)} is null");
+                throw new InvalidOperationException($"{nameof(SearchAsync)} is null");
             }
 
-            await SetLoadingStateAsync(true);
             _hasLoadedAllItems = false;
 
             if (_isDropdownOpen is false)
             {
-                await OpenDropdownAsync(clickOutsideSelectorId);
+                await OpenDropdownAsync(containerId);
             }
-
 
             if (string.IsNullOrWhiteSpace(_searchText))
             {
@@ -74,67 +75,62 @@ namespace BlazorDrop.Components.Base.Select
             {
                 await SearchWithFilterAsync();
             }
-
-            await SetLoadingStateAsync(false);
         }
 
-        protected async Task OpenDropdownAsync(string clickOutsideSelectorId)
+        protected async Task OpenDropdownAsync(string containerId)
         {
-            if (Disabled)
+            if (Disabled || _isDropdownOpen)
+            {
                 return;
+            }
 
             _isDropdownOpen = true;
             StateHasChanged();
 
-            await RegisterClickOutsideHandlerAsync(clickOutsideSelectorId);
-
-            if (_isDropdownOpen && _isScrollHandlerAttached is false && Disabled is false)
-            {
-                await RegisterScrollHandlerAsync(clickOutsideSelectorId, nameof(OnScrollToEndAsync), DotNetRef);
-            }
+            await ClickOutsideService.RegisterAsync(containerId, DotNetRef);
+            await RegisterScrollAsync(containerId, DotNetRef);
         }
 
         private async Task ResetSearchAsync()
         {
             CurrentPage = 0;
             Items = new List<T>();
-            await LoadPageAsync(CurrentPage, true);
+
+            await LoadPageAsync(CurrentPage, ignoreLoadingState: true);
             StateHasChanged();
         }
 
         private async Task SearchWithFilterAsync()
         {
-            await SetLoadingStateAsync(true);
-            await UnregisterScrollHandlerAsync(_scrollSelectorId);
+            await UnregisterScrollAsync(_scrollContainerId);
 
-            var newItems = await SearchAsync(_searchText);
-            Items = newItems.ToList();
-
-            await SetLoadingStateAsync(false);
+            var items = await SearchAsync(_searchText);
+            Items = items?.ToList() ?? new List<T>();
         }
 
         protected void CreateDotNetRef()
         {
-            if (_dotNetRefCreated is false)
+            if (_dotNetRefCreated)
             {
-                DotNetRef = DotNetObjectReference.Create(this as R);
-                _dotNetRefCreated = true;
+                return;
             }
+
+            DotNetRef = DotNetObjectReference.Create((R)(object)this);
+            _dotNetRefCreated = true;
         }
 
-        protected async Task RegisterInputHandlerAsync(string inputHandlerSelectorId, string clickOutsideSelectorId)
+        protected async Task RegisterInputAsync(string clickOutsideContainerId)
         {
-            await JSRuntime.InvokeVoidAsync(ClickHandlerMethodName, DotNetRef, inputHandlerSelectorId, UpdateSearchDelayInMilliseconds, clickOutsideSelectorId);
-        }
+            if (Disabled)
+                return;
 
-        private async Task RegisterClickOutsideHandlerAsync(string clickOutsideSelectorId)
-        {
-            await JSRuntime.InvokeVoidAsync(RegisterClickOutsideHandlerMethodName, DotNetRef, clickOutsideSelectorId);
-        }
+            CreateDotNetRef();
 
-        protected async Task UnregisterClickOutsideHandler(string id)
-        {
-            await JSRuntime.InvokeVoidAsync(UnregisterClickOutsideMethodName, id);
+            await InputInterop.RegisterAsync(
+                _inputSelectorId,
+                UpdateSearchDelayInMilliseconds,
+                clickOutsideContainerId,
+                DotNetRef);
         }
     }
 }
