@@ -28,7 +28,15 @@ dotnet add package BlazorDrop
 ```
 
 ## Required Imports
+Starting from this version, **BlazorDrop requires DI registration** for internal JS interop services.
 
+Add the following line in `Program.cs`:
+
+```csharp
+using BlazorDrop.Extensions;
+
+builder.Services.AddBlazorDrop();
+```
 To use templates, make sure you import the following namespaces in your `.razor` file or `_Imports.razor`:
 
 ```razor
