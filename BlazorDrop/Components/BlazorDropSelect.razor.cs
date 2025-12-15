@@ -5,71 +5,75 @@ using System.Threading.Tasks;
 
 namespace BlazorDrop.Components
 {
-    public partial class BlazorDropSelect<T> : IAsyncDisposable
-    {
-        [Parameter]
-        public T Value { get; set; }
+	public partial class BlazorDropSelect<T> : IAsyncDisposable
+	{
+		[Parameter]
+		public T Value { get; set; }
 
-        protected override async Task OnInitializedAsync()
-        {
-            CreateDotNetRef();
-            await LoadPageAsync(CurrentPage);
-            UpdateSearchTextAfterSelect(Value);
-        }
+		protected override async Task OnInitializedAsync()
+		{
+			CreateDotNetRef();
+			await LoadPageAsync(CurrentPage);
 
-        protected override async Task OnAfterRenderAsync(bool firstRender)
-        {
-            if (firstRender && Disabled is false)
-            {
-                await RegisterInputHandlerAsync(_inputSelectorId, _inputSelectorId);
-            }
+			if (Value != null)
+			{
+				UpdateSearchTextAfterSelect(Value);
+			}
+		}
 
-            if (_isDropdownOpen && _isScrollHandlerAttached is false && Disabled is false)
-            {
-                await RegisterScrollHandlerAsync(_scrollContainerId, nameof(OnScrollToEndAsync), DotNetRef);
-            }
-        }
+		protected override async Task OnAfterRenderAsync(bool firstRender)
+		{
+			if (firstRender && Disabled is false)
+			{
+				await RegisterInputAsync(_inputSelectorId);
+			}
 
-        protected override async Task HandleItemSelectedAsync(T value)
-        {
-            await SetLoadingStateAsync(true);
+			if (_isDropdownOpen && _isScrollHandlerAttached is false && Disabled is false)
+			{
+				await RegisterScrollAsync(_scrollContainerId, DotNetRef);
+			}
+		}
 
-            if (OnItemClickAsync == null)
-            {
-                Value = value;
-            }
-            else
-            {
-                Value = await OnItemClickAsync.Invoke(value);
-            }
+		protected override async Task HandleItemSelectedAsync(T value)
+		{
+			await SetLoadingStateAsync(true);
 
-            UpdateSearchTextAfterSelect(Value);
+			if (OnItemClickAsync == null)
+			{
+				Value = value;
+			}
+			else
+			{
+				Value = await OnItemClickAsync.Invoke(value);
+			}
 
-            await SetLoadingStateAsync(false);
-        }
+			UpdateSearchTextAfterSelect(Value);
 
-        private void UpdateSearchTextAfterSelect(T value)
-        {
-            if (value == null)
-                return;
+			await SetLoadingStateAsync(false);
+		}
 
-            _searchText = GetDisplayValue(value);
-        }
+		private void UpdateSearchTextAfterSelect(T value)
+		{
+			if (value == null)
+				return;
 
-        protected override bool IsItemSelected(T item)
-        {
-            return EqualityComparer<T>.Default.Equals(item, Value);
-        }
+			_searchText = GetDisplayValue(value);
+		}
 
-        public async ValueTask DisposeAsync()
-        {
-            if (DotNetRef != null)
-            {
-                await UnregisterClickOutsideHandler(_inputSelectorId);
-                await UnregisterScrollHandlerAsync(_scrollSelectorId);
+		protected override bool IsItemSelected(T item)
+		{
+			return EqualityComparer<T>.Default.Equals(item, Value);
+		}
 
-                DotNetRef.Dispose();
-            }
-        }
-    }
+		public async ValueTask DisposeAsync()
+		{
+			if (DotNetRef != null)
+			{
+				await ClickOutsideService.UnregisterAsync(_inputSelectorId);
+				await UnregisterScrollAsync(_scrollContainerId);
+
+				DotNetRef.Dispose();
+			}
+		}
+	}
 }

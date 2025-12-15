@@ -5,69 +5,70 @@ using System.Threading.Tasks;
 
 namespace BlazorDropTest.Pages
 {
-    public partial class Index
-    {
-        private List<KeyValuePair<Guid, string>> _testData = new List<KeyValuePair<Guid, string>>();
-        private IEnumerable<KeyValuePair<Guid, string>> _multiSelected = new List<KeyValuePair<Guid, string>>();
-        private KeyValuePair<Guid, string> _singleSelected;
-        private KeyValuePair<Guid, string> _templatedSelect;
-        private KeyValuePair<Guid, string> _listSelected;
+	public partial class Index
+	{
 
-        protected override void OnInitialized()
-        {
-            for (int i = 1; i <= 100; i++)
-            {
-                var key = Guid.NewGuid();
-                _testData.Add(new KeyValuePair<Guid, string>(key, $"Item {i}"));
-            }
+		private List<SelectItem> _items = new();
 
-            _singleSelected = _testData.FirstOrDefault();
-            _templatedSelect = _testData.FirstOrDefault();
-            _listSelected = _testData.FirstOrDefault();
-        }
+		private SelectItem? _singleSelected;
+		private SelectItem? _nullSelected;
+		private SelectItem? _disabledSelected;
+		private SelectItem? _templatedSelected;
 
-        private Task<IEnumerable<KeyValuePair<Guid, string>>> LoadItemsPagedAsync(int page, int pageSize)
-        {
-            var result = _testData.Skip(page * pageSize).Take(pageSize);
-            return Task.FromResult(result);
-        }
+		private IEnumerable<SelectItem> _multiSelected = new List<SelectItem>();
 
-        private async Task<IEnumerable<KeyValuePair<Guid, string>>> LoadItemsPagedWithDelayAsync(int page, int pageSize)
-        {
-            await Task.Delay(600);
-            return _testData.Skip(page * pageSize).Take(pageSize);
-        }
+		protected override void OnInitialized()
+		{
+			for (int i = 1; i <= 100; i++)
+			{
+				_items.Add(new SelectItem(Guid.NewGuid(), $"Item {i}"));
+			}
 
-        private Task<IEnumerable<KeyValuePair<Guid, string>>> SearchByTextAsync(string text)
-        {
-            var result = _testData.Where(x => x.Value.Contains(text, StringComparison.OrdinalIgnoreCase));
-            return Task.FromResult(result);
-        }
+			_singleSelected = _items.First();
+			_nullSelected = null;
+			_disabledSelected = null;
+			_templatedSelected = null;
+		}
 
-        private Task<KeyValuePair<Guid, string>> OnItemSelected(KeyValuePair<Guid, string> item)
-        {
-            _singleSelected = item;
-            StateHasChanged();
-            return Task.FromResult(item);
-        }
+		private Task<IEnumerable<SelectItem>> LoadItemsPagedAsync(int page, int pageSize)
+			=> Task.FromResult(_items.Skip(page * pageSize).Take(pageSize));
 
-        private Task<KeyValuePair<Guid, string>> OnTemplateItemSelected(KeyValuePair<Guid, string> item)
-        {
-            _templatedSelect = item;
-            StateHasChanged();
-            return Task.FromResult(item);
-        }
+		private Task<IEnumerable<SelectItem>> LoadEmptyAsync(int _, int __)
+			=> Task.FromResult(Enumerable.Empty<SelectItem>());
 
-        private Task<KeyValuePair<Guid, string>> OnListItemSelected(KeyValuePair<Guid, string> item)
-        {
-            _listSelected = item;
-            StateHasChanged();
-            return Task.FromResult(item);
-        }
+		private Task<IEnumerable<SelectItem>> SearchAsync(string text)
+			=> Task.FromResult(
+				_items.Where(x =>
+					x.Text.Contains(text, StringComparison.OrdinalIgnoreCase))
+			);
 
-        private Task<KeyValuePair<Guid, string>> OnMultiItemSelected(KeyValuePair<Guid, string> item)
-        {
-            return Task.FromResult(item);
-        }
-    }
+		private Task<SelectItem> OnSingleSelected(SelectItem item)
+		{
+			_singleSelected = item;
+			return Task.FromResult(item);
+		}
+
+		private Task<SelectItem> OnNullSelected(SelectItem item)
+		{
+			_nullSelected = item;
+			return Task.FromResult(item);
+		}
+
+		private Task<SelectItem> OnTemplateSelected(SelectItem item)
+		{
+			_templatedSelected = item;
+			return Task.FromResult(item);
+		}
+
+		private Task<SelectItem> OnMultiSelected(SelectItem item)
+		{
+			return Task.FromResult(item);
+		}
+
+	}
+
+	public sealed record SelectItem(
+	Guid Id,
+	string Text
+);
 }

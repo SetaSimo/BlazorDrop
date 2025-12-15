@@ -1,6 +1,6 @@
 ﻿namespace BlazorDrop
 {
-    public partial class BlazorDropLoadingIndicator
-    {
-    }
+	public partial class BlazorDropLoadingIndicator
+	{
+	}
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using BlazorDrop.Interfaces;
+using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using System;
 using System.Collections.Generic;
@@ -7,117 +8,144 @@ using System.Threading.Tasks;
 
 namespace BlazorDrop.Components.Base.Select
 {
-    public abstract class BaseLazySelectableComponent<T> : BaseLazyComponent
-    {
-        [Parameter]
-        public int PageSize { get; set; } = 20;
+	public abstract class BaseLazySelectableComponent<T, R> : BaseLazyComponent
+		where R : class
 
-        [Parameter]
-        public int CurrentPage { get; set; } = 0;
+	{
+		[Parameter]
+		public int PageSize { get; set; } = 20;
 
-        [Parameter]
-        public string ValueNotFoundMessageText { get; set; }
+		[Parameter]
+		public int CurrentPage { get; set; } = 0;
 
-        [Parameter]
-        public bool ShowLoadingIndicator { get; set; } = true;
+		[Parameter]
+		public string ValueNotFoundMessageText { get; set; }
 
-        /// <summary>
-        /// first parameter is page number, second parameter is page size
-        /// </summary>
-        [Parameter]
-        public Func<int, int, Task<IEnumerable<T>>> OnLoadItemsAsync { get; set; }
+		[Parameter]
+		public bool ShowLoadingIndicator { get; set; } = true;
 
-        [Parameter]
-        public Func<T, string> DisplaySelector { get; set; }
+		/// <summary>
+		/// pageNumber, pageSize
+		/// </summary>
+		[Parameter]
+		public Func<int, int, Task<IEnumerable<T>>> OnLoadItemsAsync { get; set; }
 
-        [Parameter]
-        public IEnumerable<T> Items { get; set; } = new List<T>();
+		[Parameter]
+		public Func<T, string> DisplaySelector { get; set; }
 
-        [Parameter]
-        public RenderFragment<T> ItemTemplate { get; set; }
+		[Parameter]
+		public IEnumerable<T> Items { get; set; } = new List<T>();
 
+		[Parameter]
+		public RenderFragment<T> ItemTemplate { get; set; }
 
-        [Inject]
-        protected IJSRuntime JSRuntime { get; set; }
+		[Parameter]
+		public Func<T, Task<T>> OnItemClickAsync { get; set; }
 
-        [Parameter]
-        public Func<T, Task<T>> OnItemClickAsync { get; set; }
+		[Inject]
+		protected IBlazorDropScrollInteropService ScrollInterop { get; set; }
 
-        protected const string DefaultSelectableItemClass = "bzd-item";
-        protected const string RegisterScrollHandlerMethodName = "BlazorDropSelect.registerScrollHandler";
-        protected const string UnregisterScrollHandlerMethodName = "BlazorDropSelect.unregisterScrollHandler";
+		protected DotNetObjectReference<R> DotNetRef { get; private set; }
 
-        protected bool _isLoading = false;
-        protected bool _hasLoadedAllItems = false;
-        protected bool _isScrollHandlerAttached = false;
+		protected const string DefaultSelectableItemClass = "bzd-item";
 
-        [JSInvokable]
-        public async Task OnScrollToEndAsync()
-        {
-            if (_isLoading)
-            {
-                return;
-            }
+		protected bool _isLoading;
+		protected bool _hasLoadedAllItems;
+		protected bool _isScrollHandlerAttached;
+		protected bool _dotNetRefCreated;
 
-            await LoadNextPageAsync();
-            await InvokeAsync(StateHasChanged);
-        }
+		// ===== JS CALLBACK =====
+		[JSInvokable]
+		public async Task OnScrollToEndAsync()
+		{
+			if (_isLoading || _hasLoadedAllItems)
+			{
+				return;
+			}
 
-        protected async Task LoadNextPageAsync()
-        {
-            CurrentPage++;
-            await LoadPageAsync(CurrentPage);
-        }
+			await LoadNextPageAsync();
+			await InvokeAsync(StateHasChanged);
+		}
 
-        protected virtual async Task LoadPageAsync(int pageNumber, bool ignoreLoadingState = false)
-        {
-            if (OnLoadItemsAsync == null || _hasLoadedAllItems || (_isLoading && ignoreLoadingState is false))
-                return;
+		protected async Task LoadNextPageAsync()
+		{
+			var nextPage = CurrentPage + 1;
+			await LoadPageAsync(nextPage);
+			CurrentPage = nextPage;
+		}
 
-            await SetLoadingStateAsync(true);
+		protected virtual async Task LoadPageAsync(int pageNumber, bool ignoreLoadingState = false)
+		{
+			if (OnLoadItemsAsync == null ||
+				_hasLoadedAllItems ||
+				(_isLoading && !ignoreLoadingState))
+			{
+				return;
+			}
 
-            var newItems = await OnLoadItemsAsync(pageNumber, PageSize);
-            Items = Items.Concat(newItems);
+			await SetLoadingStateAsync(true);
 
-            _hasLoadedAllItems = newItems == null || newItems?.Count() == 0;
-            await SetLoadingStateAsync(false);
-        }
+			var newItems = (await OnLoadItemsAsync(pageNumber, PageSize))?.ToList()
+						   ?? new List<T>();
 
+			Items = Items.Concat(newItems);
 
-        protected async Task SetLoadingStateAsync(bool isLoading)
-        {
-            _isLoading = isLoading;
-            await InvokeAsync(StateHasChanged);
-        }
+			_hasLoadedAllItems = newItems.Count < PageSize;
 
-        protected string GetDisplayValue(T item)
-        {
-            if (DisplaySelector == null)
-            {
-                return item.ToString();
-            }
+			await SetLoadingStateAsync(false);
+		}
 
-            return DisplaySelector(item);
-        }
+		protected async Task SetLoadingStateAsync(bool isLoading)
+		{
+			_isLoading = isLoading;
+			await InvokeAsync(StateHasChanged);
+		}
 
-        protected async Task RegisterScrollHandlerAsync<R>(string id, string methodName, DotNetObjectReference<R> dotNerRef) where R : class
-        {
-            await JSRuntime.InvokeVoidAsync(RegisterScrollHandlerMethodName, dotNerRef, id, methodName);
-            _isScrollHandlerAttached = true;
-        }
+		protected string GetDisplayValue(T item)
+			=> DisplaySelector?.Invoke(item) ?? item?.ToString();
 
-        protected async Task UnregisterScrollHandlerAsync(string scrollContainerId)
-        {
-            await JSRuntime.InvokeVoidAsync(UnregisterScrollHandlerMethodName, scrollContainerId);
-        }
+		protected string GetSelectableItemClass(T item)
+			=> IsItemSelected(item)
+				? $"{DefaultSelectableItemClass} bzd-item-selected"
+				: DefaultSelectableItemClass;
 
-        protected string GetSelectableItemClass(T item) =>
-            IsItemSelected(item)
-                ? $"{DefaultSelectableItemClass} bzd-item-selected"
-                : DefaultSelectableItemClass;
+		protected async Task RegisterScrollAsync<R>(
+			string containerId,
+			DotNetObjectReference<R> dotNetRef)
+			where R : class
+		{
+			if (_isScrollHandlerAttached)
+				return;
 
-        protected abstract Task HandleItemSelectedAsync(T item);
+			await ScrollInterop.RegisterAsync(
+				containerId,
+				nameof(OnScrollToEndAsync),
+				dotNetRef);
 
-        protected abstract bool IsItemSelected(T item);
-    }
+			_isScrollHandlerAttached = true;
+		}
+
+		protected async Task UnregisterScrollAsync(string containerId)
+		{
+			if (!_isScrollHandlerAttached)
+				return;
+
+			await ScrollInterop.UnregisterAsync(containerId);
+			_isScrollHandlerAttached = false;
+		}
+
+		protected void CreateDotNetRef()
+		{
+			if (_dotNetRefCreated)
+			{
+				return;
+			}
+
+			DotNetRef = DotNetObjectReference.Create((R)(object)this);
+			_dotNetRefCreated = true;
+		}
+
+		protected abstract Task HandleItemSelectedAsync(T item);
+		protected abstract bool IsItemSelected(T item);
+	}
 }
