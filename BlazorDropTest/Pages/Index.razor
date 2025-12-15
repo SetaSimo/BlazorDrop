@@ -4,93 +4,84 @@
 @using BlazorDrop.Components.Loading
 
 <div class="container">
-    <div class="card mb-4">
-        <div class="card-body">
-            <h5 class="card-title">Single Select</h5>
-            <div class="form-group mb-2">
-                <BlazorDropSelect T="KeyValuePair<Guid, string>"
-                                  Placeholder="Select value"
-                                  Value="@_singleSelected"
-                                  DisplaySelector="@(x => x.Value)"
-                                  OnLoadItemsAsync="LoadItemsPagedAsync"
-                                  SearchAsync="SearchByTextAsync"
-                                  OnItemClickAsync="OnItemSelected"
-                                  ValueNotFoundMessageText="Not found" />
-            </div>
-            <div class="text-muted">Selected: @_singleSelected.Value</div>
-        </div>
-    </div>
 
-    <div class="card mb-4">
-        <div class="card-body">
-            <h5 class="card-title">Multi Select</h5>
-            <div class="form-group mb-2">
-                <BlazorDropMultiSelect T="KeyValuePair<Guid, string>"
-                                       Placeholder="Select multiple"
-                                       DisplaySelector="@(x => x.Value)"
-                                       OnLoadItemsAsync="LoadItemsPagedAsync"
-                                       SearchAsync="SearchByTextAsync"
-                                       OnItemClickAsync="OnMultiItemSelected"
-                                       ValueNotFoundMessageText="Not found" />
-            </div>
-            <ul class="text-muted mb-0">
-                @foreach (var item in _multiSelected)
-                {
-                    <li>@item.Value</li>
-                }
-            </ul>
-        </div>
-    </div>
+    <h3 class="mb-4">BlazorDrop – Test Playground</h3>
 
-    <div class="card mb-4">
-        <div class="card-body">
-            <h5 class="card-title">Custom Template</h5>
-            <div class="form-group mb-2">
-                <BlazorDropSelect T="KeyValuePair<Guid, string>"
-                                  Placeholder="With custom template"
-                                  Value="@_templatedSelect"
-                                  DisplaySelector="@(x => x.Value)"
-                                  OnLoadItemsAsync="LoadItemsPagedAsync"
-                                  SearchAsync="SearchByTextAsync"
-                                  OnItemClickAsync="OnTemplateItemSelected"
-                                  ValueNotFoundMessageText="Not found">
-                    <ItemTemplate Context="item">
-                        <span class="text-success fw-semibold">@item.Value</span>
-                    </ItemTemplate>
-                </BlazorDropSelect>
-            </div>
-            <p class="text-muted">Selected: @_templatedSelect.Value</p>
-        </div>
-    </div>
+    <!-- SINGLE -->
+    <TestCard Title="Single Select (Nullable)">
+        <BlazorDropSelect T="SelectItem"
+                          Placeholder="Select value"
+                          Value="@_singleSelected"
+                          DisplaySelector="@(x => x.Text)"
+                          OnLoadItemsAsync="LoadItemsPagedAsync"
+                          SearchAsync="SearchAsync"
+                          OnItemClickAsync="OnSingleSelected" />
 
-    <div class="card mb-4">
-        <div class="card-body">
-            <h5 class="card-title">BlazorDropList Example</h5>
-            <div class="form-group mb-2">
-                <BlazorDropList T="KeyValuePair<Guid, string>"
-                                Value="@_listSelected"
-                                DisplaySelector="@(x => x.Value)"
-                                OnLoadItemsAsync="LoadItemsPagedWithDelayAsync"
-                                OnItemClickAsync="OnListItemSelected"
-                                ValueNotFoundMessageText="Empty list"
-                                PageSize="15" />
-            </div>
-            <p class="text-muted">Selected: @_listSelected.Value</p>
-        </div>
-    </div>
+        <small class="text-muted">
+            Selected: @_singleSelected?.Text ?? "null"
+        </small>
+    </TestCard>
 
-    <div class="container">
-        <div class="mb-3">
-            <BlazorDropCircularProgressBar></BlazorDropCircularProgressBar>
-        </div>
+    <!-- NULL -->
+    <TestCard Title="Initially NULL">
+        <BlazorDropSelect T="SelectItem"
+                          Placeholder="Starts null"
+                          Value="@_nullSelected"
+                          DisplaySelector="@(x => x.Text)"
+                          OnLoadItemsAsync="LoadItemsPagedAsync"
+                          OnItemClickAsync="OnNullSelected" />
+    </TestCard>
 
-        <div class="mb-3">
-            <BlazorDropJumpingDotsLoadingIndicator></BlazorDropJumpingDotsLoadingIndicator>
-        </div>
+    <!-- SMALL PAGE -->
+    <TestCard Title="PageSize = 5">
+        <BlazorDropSelect T="SelectItem"
+                          Placeholder="Small page"
+                          PageSize="5"
+                          DisplaySelector="@(x => x.Text)"
+                          OnLoadItemsAsync="LoadItemsPagedAsync" />
+    </TestCard>
 
-        <div class="mb-3">
-            <BlazorDropLinearProgressBar></BlazorDropLinearProgressBar>
-        </div>
-    </div>
+    <!-- DISABLED -->
+    <TestCard Title="Disabled">
+        <BlazorDropSelect T="SelectItem"
+                          Placeholder="Disabled"
+                          Disabled="true"
+                          Value="@_disabledSelected"
+                          DisplaySelector="@(x => x.Text)"
+                          OnLoadItemsAsync="LoadItemsPagedAsync" />
+    </TestCard>
+
+    <!-- EMPTY -->
+    <TestCard Title="Empty Data">
+        <BlazorDropSelect T="SelectItem"
+                          Placeholder="No data"
+                          DisplaySelector="@(x => x.Text)"
+                          OnLoadItemsAsync="LoadEmptyAsync"
+                          ValueNotFoundMessageText="Nothing here" />
+    </TestCard>
+
+    <!-- MULTI -->
+    <TestCard Title="Multi Select">
+        <BlazorDropMultiSelect T="SelectItem"
+                               Placeholder="Multi select"
+                               DisplaySelector="@(x => x.Text)"
+                               OnLoadItemsAsync="LoadItemsPagedAsync"
+                               SearchAsync="SearchAsync"
+                               OnItemClickAsync="OnMultiSelected" />
+    </TestCard>
+
+    <!-- TEMPLATE -->
+    <TestCard Title="Custom Template">
+        <BlazorDropSelect T="SelectItem"
+                          Placeholder="Template"
+                          Value="@_templatedSelected"
+                          DisplaySelector="@(x => x.Text)"
+                          OnLoadItemsAsync="LoadItemsPagedAsync"
+                          OnItemClickAsync="OnTemplateSelected">
+            <ItemTemplate Context="item">
+                <span class="badge bg-success">@item.Text</span>
+            </ItemTemplate>
+        </BlazorDropSelect>
+    </TestCard>
 
 </div>
