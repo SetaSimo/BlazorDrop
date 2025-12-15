@@ -65,8 +65,9 @@ namespace BlazorDrop.Components.Base.Select
 
         protected async Task LoadNextPageAsync()
         {
-            CurrentPage++;
-            await LoadPageAsync(CurrentPage);
+            var nextPage = CurrentPage + 1;
+            await LoadPageAsync(nextPage);
+            CurrentPage = nextPage;
         }
 
         protected virtual async Task LoadPageAsync(int pageNumber, bool ignoreLoadingState = false)
@@ -79,7 +80,7 @@ namespace BlazorDrop.Components.Base.Select
             var newItems = await OnLoadItemsAsync(pageNumber, PageSize);
             Items = Items.Concat(newItems);
 
-            _hasLoadedAllItems = newItems == null || newItems?.Count() == 0;
+            _hasLoadedAllItems = newItems == null || newItems.Count() < PageSize;
             await SetLoadingStateAsync(false);
         }
 

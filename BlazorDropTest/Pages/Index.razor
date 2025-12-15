@@ -13,7 +13,7 @@
                                   Value="@_singleSelected"
                                   DisplaySelector="@(x => x.Value)"
                                   OnLoadItemsAsync="LoadItemsPagedAsync"
-                                  OnSearchTextChangedAsync="SearchByTextAsync"
+                                  SearchAsync="SearchByTextAsync"
                                   OnItemClickAsync="OnItemSelected"
                                   ValueNotFoundMessageText="Not found" />
             </div>
@@ -29,7 +29,7 @@
                                        Placeholder="Select multiple"
                                        DisplaySelector="@(x => x.Value)"
                                        OnLoadItemsAsync="LoadItemsPagedAsync"
-                                       OnSearchTextChangedAsync="SearchByTextAsync"
+                                       SearchAsync="SearchByTextAsync"
                                        OnItemClickAsync="OnMultiItemSelected"
                                        ValueNotFoundMessageText="Not found" />
             </div>
@@ -51,7 +51,7 @@
                                   Value="@_templatedSelect"
                                   DisplaySelector="@(x => x.Value)"
                                   OnLoadItemsAsync="LoadItemsPagedAsync"
-                                  OnSearchTextChangedAsync="SearchByTextAsync"
+                                  SearchAsync="SearchByTextAsync"
                                   OnItemClickAsync="OnTemplateItemSelected"
                                   ValueNotFoundMessageText="Not found">
                     <ItemTemplate Context="item">

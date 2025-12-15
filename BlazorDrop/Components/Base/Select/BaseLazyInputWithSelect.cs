@@ -19,7 +19,7 @@ namespace BlazorDrop.Components.Base.Select
         public bool Disabled { get; set; }
 
         [Parameter]
-        public Func<string, Task<IEnumerable<T>>> OnSearchTextChangedAsync { get; set; }
+        public Func<string, Task<IEnumerable<T>>> SearchAsync { get; set; }
 
         protected DotNetObjectReference<R> DotNetRef { get; private set; }
 
@@ -52,9 +52,9 @@ namespace BlazorDrop.Components.Base.Select
         [JSInvokable]
         public async Task UpdateSearchListAfterInputAsync(string clickOutsideSelectorId)
         {
-            if (OnSearchTextChangedAsync == null)
+            if (SearchAsync == null)
             {
-                throw new ArgumentException($"{nameof(OnSearchTextChangedAsync)} is null");
+                throw new ArgumentException($"{nameof(SearchAsync)} is null");
             }
 
             await SetLoadingStateAsync(true);
@@ -107,7 +107,7 @@ namespace BlazorDrop.Components.Base.Select
             await SetLoadingStateAsync(true);
             await UnregisterScrollHandlerAsync(_scrollSelectorId);
 
-            var newItems = await OnSearchTextChangedAsync(_searchText);
+            var newItems = await SearchAsync(_searchText);
             Items = newItems.ToList();
 
             await SetLoadingStateAsync(false);
