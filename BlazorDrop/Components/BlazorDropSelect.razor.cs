@@ -10,6 +10,9 @@ namespace BlazorDrop.Components
 		[Parameter]
 		public T Value { get; set; }
 
+		[Parameter]
+		public EventCallback<T> ValueChanged { get; set; }
+
 		protected override async Task OnInitializedAsync()
 		{
 			CreateDotNetRef();
@@ -34,6 +37,11 @@ namespace BlazorDrop.Components
 			}
 		}
 
+		protected override async void OnParametersSet()
+		{
+			await HandleItemSelectedAsync(Value);
+		}
+
 		protected override async Task HandleItemSelectedAsync(T value)
 		{
 			await SetLoadingStateAsync(true);
@@ -48,6 +56,7 @@ namespace BlazorDrop.Components
 			}
 
 			UpdateSearchTextAfterSelect(Value);
+			await ValueChanged.InvokeAsync(Value);
 
 			await SetLoadingStateAsync(false);
 		}
@@ -55,7 +64,10 @@ namespace BlazorDrop.Components
 		private void UpdateSearchTextAfterSelect(T value)
 		{
 			if (value == null)
+			{
+				_searchText = string.Empty;
 				return;
+			}
 
 			_searchText = GetDisplayValue(value);
 		}
@@ -69,10 +81,11 @@ namespace BlazorDrop.Components
 		{
 			if (DotNetRef != null)
 			{
-				await ClickOutsideService.UnregisterAsync(_inputSelectorId);
+				await ClickOutsideService.UnregisterClickOutsideAsync(_inputSelectorId);
 				await UnregisterScrollAsync(_scrollContainerId);
 
 				DotNetRef.Dispose();
+				_dotNetRefCreated = false;
 			}
 		}
 	}

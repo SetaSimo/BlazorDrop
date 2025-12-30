@@ -8,9 +8,8 @@ using System.Threading.Tasks;
 
 namespace BlazorDrop.Components.Base.Select
 {
-	public abstract class BaseLazySelectableComponent<T, R> : BaseLazyComponent
-		where R : class
-
+	public abstract class BaseLazySelectableComponent<ListItemType, R> : BaseLazyComponent, IBlazorDropInvokable
+		where R : class, IBlazorDropInvokable
 	{
 		[Parameter]
 		public int PageSize { get; set; } = 20;
@@ -24,28 +23,31 @@ namespace BlazorDrop.Components.Base.Select
 		[Parameter]
 		public bool ShowLoadingIndicator { get; set; } = true;
 
+		[Parameter]
+		public int? MaxDisplayedTags { get; set; } = null;
+
 		/// <summary>
 		/// pageNumber, pageSize
 		/// </summary>
 		[Parameter]
-		public Func<int, int, Task<IEnumerable<T>>> OnLoadItemsAsync { get; set; }
+		public Func<int, int, Task<IEnumerable<ListItemType>>> OnLoadItemsAsync { get; set; }
 
 		[Parameter]
-		public Func<T, string> DisplaySelector { get; set; }
+		public Func<ListItemType, string> DisplaySelector { get; set; }
 
 		[Parameter]
-		public IEnumerable<T> Items { get; set; } = new List<T>();
+		public IEnumerable<ListItemType> Items { get; set; } = new List<ListItemType>();
 
 		[Parameter]
-		public RenderFragment<T> ItemTemplate { get; set; }
+		public RenderFragment<ListItemType> ItemTemplate { get; set; }
 
 		[Parameter]
-		public Func<T, Task<T>> OnItemClickAsync { get; set; }
+		public Func<ListItemType, Task<ListItemType>> OnItemClickAsync { get; set; }
 
 		[Inject]
-		protected IBlazorDropScrollInteropService ScrollInterop { get; set; }
+		protected IBlazorDropInteropService InteropService { get; set; }
 
-		protected DotNetObjectReference<R> DotNetRef { get; private set; }
+		protected DotNetObjectReference<IBlazorDropInvokable> DotNetRef { get; private set; }
 
 		protected const string DefaultSelectableItemClass = "bzd-item";
 
@@ -54,7 +56,6 @@ namespace BlazorDrop.Components.Base.Select
 		protected bool _isScrollHandlerAttached;
 		protected bool _dotNetRefCreated;
 
-		// ===== JS CALLBACK =====
 		[JSInvokable]
 		public async Task OnScrollToEndAsync()
 		{
@@ -86,7 +87,7 @@ namespace BlazorDrop.Components.Base.Select
 			await SetLoadingStateAsync(true);
 
 			var newItems = (await OnLoadItemsAsync(pageNumber, PageSize))?.ToList()
-						   ?? new List<T>();
+						   ?? new List<ListItemType>();
 
 			Items = Items.Concat(newItems);
 
@@ -101,23 +102,22 @@ namespace BlazorDrop.Components.Base.Select
 			await InvokeAsync(StateHasChanged);
 		}
 
-		protected string GetDisplayValue(T item)
+		protected string GetDisplayValue(ListItemType item)
 			=> DisplaySelector?.Invoke(item) ?? item?.ToString();
 
-		protected string GetSelectableItemClass(T item)
+		protected string GetSelectableItemClass(ListItemType item)
 			=> IsItemSelected(item)
 				? $"{DefaultSelectableItemClass} bzd-item-selected"
 				: DefaultSelectableItemClass;
 
-		protected async Task RegisterScrollAsync<R>(
+		protected async Task RegisterScrollAsync(
 			string containerId,
-			DotNetObjectReference<R> dotNetRef)
-			where R : class
+			DotNetObjectReference<IBlazorDropInvokable> dotNetRef)
 		{
 			if (_isScrollHandlerAttached)
 				return;
 
-			await ScrollInterop.RegisterAsync(
+			await InteropService.RegisterScrollAsync(
 				containerId,
 				nameof(OnScrollToEndAsync),
 				dotNetRef);
@@ -130,7 +130,7 @@ namespace BlazorDrop.Components.Base.Select
 			if (!_isScrollHandlerAttached)
 				return;
 
-			await ScrollInterop.UnregisterAsync(containerId);
+			await InteropService.UnregisterScrollAsync(containerId);
 			_isScrollHandlerAttached = false;
 		}
 
@@ -141,11 +141,12 @@ namespace BlazorDrop.Components.Base.Select
 				return;
 			}
 
-			DotNetRef = DotNetObjectReference.Create((R)(object)this);
+			DotNetRef = DotNetObjectReference.Create<IBlazorDropInvokable>(this);
 			_dotNetRefCreated = true;
 		}
 
-		protected abstract Task HandleItemSelectedAsync(T item);
-		protected abstract bool IsItemSelected(T item);
+		protected abstract Task HandleItemSelectedAsync(ListItemType item);
+
+		protected abstract bool IsItemSelected(ListItemType item);
 	}
 }

@@ -7,7 +7,6 @@ namespace BlazorDropTest.Pages
 {
 	public partial class Index
 	{
-
 		private List<SelectItem> _items = new();
 
 		private SelectItem? _singleSelected;
@@ -15,7 +14,7 @@ namespace BlazorDropTest.Pages
 		private SelectItem? _disabledSelected;
 		private SelectItem? _templatedSelected;
 
-		private IEnumerable<SelectItem> _multiSelected = new List<SelectItem>();
+		private List<SelectItem> _multiSelected = new();
 
 		protected override void OnInitialized()
 		{
@@ -25,50 +24,50 @@ namespace BlazorDropTest.Pages
 			}
 
 			_singleSelected = _items.First();
-			_nullSelected = null;
-			_disabledSelected = null;
-			_templatedSelected = null;
 		}
 
 		private Task<IEnumerable<SelectItem>> LoadItemsPagedAsync(int page, int pageSize)
-			=> Task.FromResult(_items.Skip(page * pageSize).Take(pageSize));
+			=> Task.FromResult(_items.Skip(page * pageSize).Take(pageSize).AsEnumerable());
 
 		private Task<IEnumerable<SelectItem>> LoadEmptyAsync(int _, int __)
 			=> Task.FromResult(Enumerable.Empty<SelectItem>());
 
 		private Task<IEnumerable<SelectItem>> SearchAsync(string text)
-			=> Task.FromResult(
-				_items.Where(x =>
-					x.Text.Contains(text, StringComparison.OrdinalIgnoreCase))
-			);
+			=> Task.FromResult(_items.Where(x => x.Text.Contains(text, StringComparison.OrdinalIgnoreCase)));
 
-		private Task<SelectItem> OnSingleSelected(SelectItem item)
+		private async Task<SelectItem> OnSingleSelected(SelectItem item)
 		{
-			_singleSelected = item;
-			return Task.FromResult(item);
+			return item;
 		}
 
 		private Task<SelectItem> OnNullSelected(SelectItem item)
 		{
 			_nullSelected = item;
+
 			return Task.FromResult(item);
 		}
 
 		private Task<SelectItem> OnTemplateSelected(SelectItem item)
 		{
 			_templatedSelected = item;
+
 			return Task.FromResult(item);
 		}
 
 		private Task<SelectItem> OnMultiSelected(SelectItem item)
 		{
+			if (_multiSelected.Any(x => x.Id == item.Id))
+			{
+				_multiSelected.RemoveAll(x => x.Id == item.Id);
+			}
+			else
+			{
+				_multiSelected.Add(item);
+			}
+
 			return Task.FromResult(item);
 		}
-
 	}
 
-	public sealed record SelectItem(
-	Guid Id,
-	string Text
-);
+	public sealed record SelectItem(Guid Id, string Text);
 }

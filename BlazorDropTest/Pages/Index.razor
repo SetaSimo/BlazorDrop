@@ -3,64 +3,44 @@
 @using BlazorDrop.Components
 @using BlazorDrop.Components.Loading
 
-<div class="container">
+<style>
+    .state-debug {
+        background: #f1f3f5;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        display: block;
+        margin-top: 5px;
+        color: #495057;
+        border-left: 3px solid #0d6efd;
+    }
+</style>
+
+<div class="container pb-5">
 
     <h3 class="mb-4">BlazorDrop – Test Playground</h3>
 
-    <!-- SINGLE -->
-    <TestCard Title="Single Select (Nullable)">
+    <TestCard Title="Single Select (Two-way Bind)">
         <BlazorDropSelect T="SelectItem"
                           Placeholder="Select value"
-                          Value="@_singleSelected"
+                          @bind-Value="@_singleSelected"
                           DisplaySelector="@(x => x.Text)"
                           OnLoadItemsAsync="LoadItemsPagedAsync"
                           SearchAsync="SearchAsync"
                           OnItemClickAsync="OnSingleSelected" />
-
-        <small class="text-muted">
-            Selected: @_singleSelected?.Text ?? "null"
-        </small>
+        <code class="state-debug">Parent State: @(_singleSelected?.Text ?? "NULL")</code>
     </TestCard>
 
-    <!-- NULL -->
-    <TestCard Title="Initially NULL">
+    <TestCard Title="Initially NULL (Manual Update)">
         <BlazorDropSelect T="SelectItem"
                           Placeholder="Starts null"
                           Value="@_nullSelected"
                           DisplaySelector="@(x => x.Text)"
                           OnLoadItemsAsync="LoadItemsPagedAsync"
                           OnItemClickAsync="OnNullSelected" />
+        <code class="state-debug">Parent State: @(_nullSelected?.Text ?? "NULL")</code>
     </TestCard>
 
-    <!-- SMALL PAGE -->
-    <TestCard Title="PageSize = 5">
-        <BlazorDropSelect T="SelectItem"
-                          Placeholder="Small page"
-                          PageSize="5"
-                          DisplaySelector="@(x => x.Text)"
-                          OnLoadItemsAsync="LoadItemsPagedAsync" />
-    </TestCard>
-
-    <!-- DISABLED -->
-    <TestCard Title="Disabled">
-        <BlazorDropSelect T="SelectItem"
-                          Placeholder="Disabled"
-                          Disabled="true"
-                          Value="@_disabledSelected"
-                          DisplaySelector="@(x => x.Text)"
-                          OnLoadItemsAsync="LoadItemsPagedAsync" />
-    </TestCard>
-
-    <!-- EMPTY -->
-    <TestCard Title="Empty Data">
-        <BlazorDropSelect T="SelectItem"
-                          Placeholder="No data"
-                          DisplaySelector="@(x => x.Text)"
-                          OnLoadItemsAsync="LoadEmptyAsync"
-                          ValueNotFoundMessageText="Nothing here" />
-    </TestCard>
-
-    <!-- MULTI -->
     <TestCard Title="Multi Select">
         <BlazorDropMultiSelect T="SelectItem"
                                Placeholder="Multi select"
@@ -68,9 +48,9 @@
                                OnLoadItemsAsync="LoadItemsPagedAsync"
                                SearchAsync="SearchAsync"
                                OnItemClickAsync="OnMultiSelected" />
+        <code class="state-debug">Selected Count: @_multiSelected.Count | Items: @(string.Join(", ", _multiSelected.Select(x => x.Text)))</code>
     </TestCard>
 
-    <!-- TEMPLATE -->
     <TestCard Title="Custom Template">
         <BlazorDropSelect T="SelectItem"
                           Placeholder="Template"
@@ -82,6 +62,16 @@
                 <span class="badge bg-success">@item.Text</span>
             </ItemTemplate>
         </BlazorDropSelect>
+        <code class="state-debug">Parent State: @(_templatedSelected?.Text ?? "NULL")</code>
+    </TestCard>
+
+    <TestCard Title="Disabled">
+        <BlazorDropSelect T="SelectItem"
+                          Placeholder="Disabled"
+                          Disabled="true"
+                          Value="@_disabledSelected"
+                          DisplaySelector="@(x => x.Text)"
+                          OnLoadItemsAsync="LoadItemsPagedAsync" />
     </TestCard>
 
 </div>

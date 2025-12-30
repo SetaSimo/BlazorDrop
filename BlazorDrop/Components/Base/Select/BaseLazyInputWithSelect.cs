@@ -10,7 +10,7 @@ namespace BlazorDrop.Components.Base.Select
 {
 	public abstract class BaseLazyInputWithSelect<T, R>
 		: BaseLazySelectableComponent<T, R>
-		where R : class
+		where R : class, IBlazorDropInvokable
 	{
 		[Parameter]
 		public string Placeholder { get; set; }
@@ -25,10 +25,7 @@ namespace BlazorDrop.Components.Base.Select
 		public Func<string, Task<IEnumerable<T>>> SearchAsync { get; set; }
 
 		[Inject]
-		protected IBlazorDropClickOutsideService ClickOutsideService { get; set; }
-
-		[Inject]
-		protected IBlazorDropInputInteropService InputInterop { get; set; }
+		protected IBlazorDropInteropService ClickOutsideService { get; set; }
 
 		protected string _searchText = string.Empty;
 
@@ -44,7 +41,7 @@ namespace BlazorDrop.Components.Base.Select
 			_isScrollHandlerAttached = false;
 
 			await UnregisterScrollAsync(containerId);
-			await ClickOutsideService.UnregisterAsync(containerId);
+			await ClickOutsideService.UnregisterClickOutsideAsync(containerId);
 
 			StateHasChanged();
 		}
@@ -84,7 +81,7 @@ namespace BlazorDrop.Components.Base.Select
 			_isDropdownOpen = true;
 			StateHasChanged();
 
-			await ClickOutsideService.RegisterAsync(containerId, DotNetRef);
+			await ClickOutsideService.RegisterClickOutsideAsync(containerId, DotNetRef);
 			await RegisterScrollAsync(containerId, DotNetRef);
 		}
 
@@ -114,7 +111,7 @@ namespace BlazorDrop.Components.Base.Select
 
 			CreateDotNetRef();
 
-			await InputInterop.RegisterAsync(
+			await ClickOutsideService.RegisterInputAsync(
 				_inputSelectorId,
 				UpdateSearchDelayInMilliseconds,
 				clickOutsideContainerId,

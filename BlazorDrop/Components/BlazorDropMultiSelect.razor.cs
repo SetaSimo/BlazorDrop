@@ -11,7 +11,11 @@ namespace BlazorDrop.Components
 		[Parameter]
 		public Func<IEnumerable<T>, Task<string>> GetDisplayTextAsync { get; set; }
 
+		[Parameter]
 		public IList<T> SelectedValues { get; set; } = new List<T>();
+
+		[Parameter]
+		public EventCallback<T> SelectedValuesChanged { get; set; }
 
 		protected override async Task OnInitializedAsync()
 		{
@@ -30,6 +34,11 @@ namespace BlazorDrop.Components
 			{
 				await RegisterScrollAsync(_scrollContainerId, DotNetRef);
 			}
+		}
+
+		protected override async void OnParametersSet()
+		{
+			await UpdateSearchTextAfterSelect();
 		}
 
 		protected override async Task HandleItemSelectedAsync(T value)
@@ -52,6 +61,13 @@ namespace BlazorDrop.Components
 				SelectedValues.Add(value);
 			}
 
+			await UpdateSearchTextAfterSelect();
+
+			await SetLoadingStateAsync(false);
+		}
+
+		private async Task UpdateSearchTextAfterSelect()
+		{
 			if (GetDisplayTextAsync == null)
 			{
 				_searchText = string.Join(", ", SelectedValues.Select(x => GetDisplayValue(x)));
@@ -60,8 +76,6 @@ namespace BlazorDrop.Components
 			{
 				_searchText = await GetDisplayTextAsync(SelectedValues);
 			}
-
-			await SetLoadingStateAsync(false);
 		}
 
 		protected override bool IsItemSelected(T item)
@@ -73,7 +87,7 @@ namespace BlazorDrop.Components
 		{
 			if (DotNetRef != null)
 			{
-				await ClickOutsideService.UnregisterAsync(Id);
+				await ClickOutsideService.UnregisterClickOutsideAsync(Id);
 				await UnregisterScrollAsync(_scrollContainerId);
 
 				DotNetRef.Dispose();
