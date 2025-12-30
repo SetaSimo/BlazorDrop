@@ -16,7 +16,7 @@ namespace BlazorDrop.Components.Base.Select
 		public string Placeholder { get; set; }
 
 		[Parameter]
-		public int UpdateSearchDelayInMilliseconds { get; set; } = 1000;
+		public int UpdateSearchDelayInMilliseconds { get; set; } = 500;
 
 		[Parameter]
 		public bool Disabled { get; set; }
@@ -25,7 +25,7 @@ namespace BlazorDrop.Components.Base.Select
 		public Func<string, Task<IEnumerable<T>>> SearchAsync { get; set; }
 
 		[Inject]
-		protected IBlazorDropInteropService ClickOutsideService { get; set; }
+		protected IBlazorDropInteropService InteropService { get; set; }
 
 		protected string _searchText = string.Empty;
 
@@ -41,7 +41,7 @@ namespace BlazorDrop.Components.Base.Select
 			_isScrollHandlerAttached = false;
 
 			await UnregisterScrollAsync(containerId);
-			await ClickOutsideService.UnregisterClickOutsideAsync(containerId);
+			await InteropService.UnregisterClickOutsideAsync(containerId);
 
 			StateHasChanged();
 		}
@@ -49,11 +49,6 @@ namespace BlazorDrop.Components.Base.Select
 		[JSInvokable]
 		public async Task UpdateSearchListAfterInputAsync(string containerId)
 		{
-			if (SearchAsync == null)
-			{
-				throw new InvalidOperationException($"{nameof(SearchAsync)} is null");
-			}
-
 			_hasLoadedAllItems = false;
 
 			if (_isDropdownOpen is false)
@@ -81,7 +76,7 @@ namespace BlazorDrop.Components.Base.Select
 			_isDropdownOpen = true;
 			StateHasChanged();
 
-			await ClickOutsideService.RegisterClickOutsideAsync(containerId, DotNetRef);
+			await InteropService.RegisterClickOutsideAsync(containerId, DotNetRef);
 			await RegisterScrollAsync(containerId, DotNetRef);
 		}
 
@@ -97,9 +92,15 @@ namespace BlazorDrop.Components.Base.Select
 		private async Task SearchWithFilterAsync()
 		{
 			await UnregisterScrollAsync(_scrollContainerId);
-
-			var items = await SearchAsync(_searchText);
-			Items = items?.ToList() ?? new List<T>();
+			if (SearchAsync == null)
+			{
+				Items = Items.Where(x => GetDisplayValue(x).Contains(_searchText));
+			}
+			else
+			{
+				var items = await SearchAsync(_searchText);
+				Items = items?.ToList() ?? new List<T>();
+			}
 		}
 
 		protected async Task RegisterInputAsync(string clickOutsideContainerId)
@@ -111,7 +112,7 @@ namespace BlazorDrop.Components.Base.Select
 
 			CreateDotNetRef();
 
-			await ClickOutsideService.RegisterInputAsync(
+			await InteropService.RegisterInputAsync(
 				_inputSelectorId,
 				UpdateSearchDelayInMilliseconds,
 				clickOutsideContainerId,

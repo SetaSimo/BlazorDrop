@@ -87,7 +87,7 @@ namespace BlazorDrop.Components
 		{
 			if (DotNetRef != null)
 			{
-				await ClickOutsideService.UnregisterClickOutsideAsync(Id);
+				await InteropService.UnregisterClickOutsideAsync(Id);
 				await UnregisterScrollAsync(_scrollContainerId);
 
 				DotNetRef.Dispose();

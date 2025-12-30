@@ -4,21 +4,10 @@
 @using BlazorDrop.Components.Loading
 
 <style>
-    .state-debug {
-        background: #f1f3f5;
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-size: 0.8rem;
-        display: block;
-        margin-top: 5px;
-        color: #495057;
-        border-left: 3px solid #0d6efd;
-    }
+
 </style>
 
 <div class="container pb-5">
-
-    <h3 class="mb-4">BlazorDrop – Test Playground</h3>
 
     <TestCard Title="Single Select (Two-way Bind)">
         <BlazorDropSelect T="SelectItem"
@@ -26,7 +15,6 @@
                           @bind-Value="@_singleSelected"
                           DisplaySelector="@(x => x.Text)"
                           OnLoadItemsAsync="LoadItemsPagedAsync"
-                          SearchAsync="SearchAsync"
                           OnItemClickAsync="OnSingleSelected" />
         <code class="state-debug">Parent State: @(_singleSelected?.Text ?? "NULL")</code>
     </TestCard>
@@ -46,7 +34,6 @@
                                Placeholder="Multi select"
                                DisplaySelector="@(x => x.Text)"
                                OnLoadItemsAsync="LoadItemsPagedAsync"
-                               SearchAsync="SearchAsync"
                                OnItemClickAsync="OnMultiSelected" />
         <code class="state-debug">Selected Count: @_multiSelected.Count | Items: @(string.Join(", ", _multiSelected.Select(x => x.Text)))</code>
     </TestCard>

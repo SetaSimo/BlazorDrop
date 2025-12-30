@@ -37,9 +37,9 @@ namespace BlazorDrop.Components
 			}
 		}
 
-		protected override async void OnParametersSet()
+		protected override void OnParametersSet()
 		{
-			await HandleItemSelectedAsync(Value);
+			UpdateSearchTextAfterSelect(Value);
 		}
 
 		protected override async Task HandleItemSelectedAsync(T value)
@@ -81,7 +81,7 @@ namespace BlazorDrop.Components
 		{
 			if (DotNetRef != null)
 			{
-				await ClickOutsideService.UnregisterClickOutsideAsync(_inputSelectorId);
+				await InteropService.UnregisterClickOutsideAsync(_inputSelectorId);
 				await UnregisterScrollAsync(_scrollContainerId);
 
 				DotNetRef.Dispose();
