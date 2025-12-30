@@ -12,6 +12,9 @@ namespace BlazorDrop.Components
 		[Parameter]
 		public T Value { get; set; }
 
+		[Parameter]
+		public EventCallback<T> SelectedValuesChanged { get; set; }
+
 		private bool _didLoadPageAfterInitialization = false;
 		private bool _didAddScrollEvent = false;
 

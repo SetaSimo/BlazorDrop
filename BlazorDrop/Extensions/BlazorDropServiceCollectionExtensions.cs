@@ -8,9 +8,7 @@ namespace BlazorDrop.Extensions
 	{
 		public static IServiceCollection AddBlazorDrop(this IServiceCollection services)
 		{
-			services.AddScoped<IBlazorDropScrollInteropService, BlazorDropScrollInteropService>();
-			services.AddScoped<IBlazorDropClickOutsideService, BlazorDropClickOutsideService>();
-			services.AddScoped<IBlazorDropInputInteropService, BlazorDropInputInteropService>();
+			services.AddScoped<IBlazorDropInteropService, BlazorDropInteropService>();
 
 			return services;
 		}
