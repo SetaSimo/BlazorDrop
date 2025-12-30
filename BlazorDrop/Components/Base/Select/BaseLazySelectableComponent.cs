@@ -23,9 +23,6 @@ namespace BlazorDrop.Components.Base.Select
 		[Parameter]
 		public bool ShowLoadingIndicator { get; set; } = true;
 
-		[Parameter]
-		public int? MaxDisplayedTags { get; set; } = null;
-
 		/// <summary>
 		/// pageNumber, pageSize
 		/// </summary>
