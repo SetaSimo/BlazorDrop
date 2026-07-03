@@ -1,4 +1,4 @@
-﻿@using BlazorDrop.Components.Base
+@using BlazorDrop.Components.Base
 @inherits BaseLazyComponent
 
-<div id="@Id" class="@Class bzd-spinner" style="@Style" role="progressbar" aria-valuetext="Loading..." aria-busy="true"></div>
+<div @attributes="AdditionalAttributes" id="@Id" class="bzd-spinner @Class" style="@Style" role="progressbar" aria-label="@AriaLabel" aria-busy="true"></div>

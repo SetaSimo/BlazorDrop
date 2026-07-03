@@ -1,0 +1,34 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = crlf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+[*.{razor,cshtml}]
+indent_size = 4
+
+[*.{js,css,json,yml,yaml}]
+indent_size = 2
+
+[*.{csproj,props,targets}]
+indent_size = 4
+
+[*.cs]
+# Namespaces / usings
+dotnet_sort_system_directives_first = true
+csharp_using_directive_placement = outside_namespace:warning
+
+# Library is kept C# 8 / .NET Core 3.1 compatible. Prefer classic constructs in BlazorDrop/**.
+csharp_style_namespace_declarations = block_scoped:warning
+
+# Nullable / quality
+dotnet_diagnostic.CS1591.severity = suggestion   # missing XML doc: surfaced, not noisy
+
+# Code style
+dotnet_style_qualification_for_field = false:suggestion
+csharp_prefer_braces = true:suggestion
+csharp_style_expression_bodied_methods = when_on_single_line:suggestion

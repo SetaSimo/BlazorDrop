@@ -1,51 +1,38 @@
-﻿@using BlazorDrop.Components.Base
 @using BlazorDrop.Components.Base.Select
-@using BlazorDrop.Components.Loading
+@using BlazorDrop.Components.Internal
 @typeparam T
-@inherits BaseLazyInputWithSelect<T,BlazorDropMultiSelect<T>>
+@inherits BaseLazyInputWithSelect<T>
 
-<div id="@Id" class="bzd-container @Class" style="@Style">
-
-    <div class="bzd-input-wrapper">
-        <input id="@_inputSelectorId"
-               class="bzd-input"
-               placeholder="@Placeholder"
-               disabled="@Disabled"
-               readonly="@Disabled"
-               @onclick="() => OpenDropdownAsync(Id)"
-               @bind-value="@_searchText"
-               @bind-value:event="oninput" />
-
-        @if (_isLoading && ShowLoadingIndicator)
+<BlazorDropInputField TItem="T" Host="this" WrapperClass="bzd-multi" InputClass="bzd-multi-input" Multiselectable="true">
+    <Prefix>
+        @if (SelectedCount > 0)
         {
-            <BlazorDropCircularProgressBar Class="bzd-input-spinner"></BlazorDropCircularProgressBar>
+            <div class="bzd-chips" role="list">
+                @foreach (var item in VisibleChips)
+                {
+                    var chip = item;
+                    <span class="bzd-chip" role="listitem">
+                        <span class="bzd-chip-label">@GetDisplayValue(chip)</span>
+                        @if (!Disabled)
+                        {
+                            <button type="button"
+                                    class="bzd-chip-remove"
+                                    tabindex="-1"
+                                    aria-label="@string.Format(Strings.RemoveItemFormat, GetDisplayValue(chip))"
+                                    @onclick="() => RemoveAsync(chip)"
+                                    @onclick:stopPropagation="true"
+                                    @onmousedown:preventDefault="true">×</button>
+                        }
+                    </span>
+                }
+                @if (OverflowCount > 0)
+                {
+                    <span class="bzd-chip bzd-chip-overflow" role="listitem" title="@string.Format(Strings.MoreSelectedFormat, OverflowCount)">
+                        <span aria-hidden="true">+@OverflowCount</span>
+                        <span class="bzd-sr-only">@string.Format(Strings.MoreSelectedFormat, OverflowCount)</span>
+                    </span>
+                }
+            </div>
         }
-    </div>
-
-    @if (_isDropdownOpen)
-    {
-        <div class="bzd-dropdown" id="@_scrollContainerId" role="listbox" aria-expanded="true">
-            @foreach (var item in Items)
-            {
-                <div role="option"
-                     aria-selected="@IsItemSelected(item)"
-                     class="@GetSelectableItemClass(item)"
-                     @onclick="() => HandleItemSelectedAsync(item)">
-                    @if (ItemTemplate != null)
-                    {
-                        @ItemTemplate(item)
-                    }
-                    else
-                    {
-                        @GetDisplayValue(item)
-                    }
-                </div>
-            }
-
-            @if (!Items.Any())
-            {
-                <div class="bzd-empty-message">@ValueNotFoundMessageText</div>
-            }
-        </div>
-    }
-</div>
+    </Prefix>
+</BlazorDropInputField>

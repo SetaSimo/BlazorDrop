@@ -1,51 +1,6 @@
-﻿@using BlazorDrop.Components.Base
 @using BlazorDrop.Components.Base.Select
-@using BlazorDrop.Components.Loading
+@using BlazorDrop.Components.Internal
 @typeparam T
-@inherits BaseLazyInputWithSelect<T,BlazorDropSelect<T>>
+@inherits BaseLazyInputWithSelect<T>
 
-<div id="@Id" class="bzd-container @Class" style="@Style">
-
-    <div class="bzd-input-wrapper">
-        <input id="@_inputSelectorId"
-               class="bzd-input"
-               placeholder="@Placeholder"
-               disabled="@Disabled"
-               readonly="@Disabled"
-               @onclick="() => OpenDropdownAsync(_inputSelectorId)"
-               @bind-value="@_searchText"
-               @bind-value:event="oninput" />
-
-        @if (_isLoading && ShowLoadingIndicator)
-        {
-            <BlazorDropCircularProgressBar Class="bzd-input-spinner"></BlazorDropCircularProgressBar>
-        }
-    </div>
-
-    @if (_isDropdownOpen)
-    {
-        <div class="bzd-dropdown" id="@_scrollContainerId" role="listbox" aria-expanded="true">
-            @foreach (var item in Items)
-            {
-                <div role="option"
-                     aria-selected="@IsItemSelected(item)"
-                     class="@GetSelectableItemClass(item)"
-                     @onclick="() => HandleItemSelectedAsync(item)">
-                    @if (ItemTemplate != null)
-                    {
-                        @ItemTemplate(item)
-                    }
-                    else
-                    {
-                        @GetDisplayValue(item)
-                    }
-                </div>
-            }
-
-            @if (!Items.Any())
-            {
-                <div class="bzd-empty-message">@ValueNotFoundMessageText</div>
-            }
-        </div>
-    }
-</div>
+<BlazorDropInputField TItem="T" Host="this" />

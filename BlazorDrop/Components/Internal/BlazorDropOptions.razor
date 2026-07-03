@@ -1,0 +1,91 @@
+@namespace BlazorDrop.Components.Internal
+@using BlazorDrop.Components.Base.Select
+@using BlazorDrop.Components.Loading
+@using System.ComponentModel
+@attribute [EditorBrowsable(EditorBrowsableState.Never)]
+@typeparam TItem
+
+<div id="@Host.ListboxId"
+     class="bzd-listbox"
+     role="listbox"
+     tabindex="@(Focusable ? "0" : null)"
+     aria-label="@(Focusable ? Host.AriaLabel : null)"
+     aria-multiselectable="@(Multiselectable ? "true" : null)"
+     aria-activedescendant="@(Focusable ? Host.ActiveDescendantId : null)"
+     aria-busy="@(Host.IsLoading ? "true" : null)"
+     @onkeydown="@(Focusable ? OnKeyDown : default)">
+    @for (var i = 0; i < Items.Count; i++)
+    {
+        var index = i;
+        var item = Items[index];
+        <div role="option"
+             id="@Host.GetOptionId(index)"
+             aria-selected="@(Host.IsItemSelected(item) ? "true" : "false")"
+             class="@Host.GetItemCssClass(item, index)"
+             @onclick="@On(() => Host.SelectItemAsync(item))"
+             @onmouseover="@OnSync(() => Host.SetHoverIndex(index))"
+             @onmousedown:preventDefault="true">
+            @if (Host.ItemTemplate != null)
+            {
+                @Host.ItemTemplate(item)
+            }
+            else
+            {
+                @Host.GetDisplayValue(item)
+            }
+        </div>
+    }
+</div>
+
+@if (Host.IsLoading && Host.ShowLoadingIndicator)
+{
+    <div class="bzd-status bzd-status-loading" role="status" aria-live="polite">
+        @if (Host.LoadingTemplate != null)
+        {
+            @Host.LoadingTemplate
+        }
+        else
+        {
+            <BlazorDropLinearProgressBar AriaLabel="@Host.Strings.Loading" />
+        }
+    </div>
+}
+else if (Items.Count == 0)
+{
+    @if (Host.LoadError != null)
+    {
+        <div class="bzd-status bzd-error-message" role="alert">
+            <span>@Host.Strings.LoadFailed</span>
+            <button type="button" class="bzd-retry-button" @onclick="@On(Host.ReloadAsync)" @onmousedown:preventDefault="true">@Host.Strings.Retry</button>
+        </div>
+    }
+    else if (Host.EmptyTemplate != null)
+    {
+        <div class="bzd-status" role="status">@Host.EmptyTemplate</div>
+    }
+    else
+    {
+        <div class="bzd-status bzd-empty-message" role="status">@Host.EmptyText</div>
+    }
+}
+else if (!Host.HasMore && Host.NoMoreDataTemplate != null)
+{
+    <div class="bzd-status bzd-no-more">@Host.NoMoreDataTemplate</div>
+}
+
+@code {
+    [Parameter] public BaseLazySelectableComponent<TItem> Host { get; set; } = default!;
+
+    [Parameter] public bool Focusable { get; set; }
+
+    [Parameter] public bool Multiselectable { get; set; }
+
+    private IReadOnlyList<TItem> Items => Host.RenderItems;
+
+    private EventCallback<KeyboardEventArgs> OnKeyDown
+        => EventCallback.Factory.Create<KeyboardEventArgs>(Host, e => Host.HandleNavigationKeyAsync(e.Key));
+
+    private EventCallback<MouseEventArgs> On(Func<Task> handler) => EventCallback.Factory.Create<MouseEventArgs>(Host, handler);
+
+    private EventCallback<MouseEventArgs> OnSync(Action handler) => EventCallback.Factory.Create<MouseEventArgs>(Host, handler);
+}

@@ -1,75 +1,59 @@
-﻿using BlazorDrop.Components.Base.Select;
 using Microsoft.AspNetCore.Components;
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 namespace BlazorDrop.Components
 {
-	public partial class BlazorDropList<T> : BaseLazySelectableComponent<T, BlazorDropList<T>>, IAsyncDisposable
-	{
-		[Parameter]
-		public T Value { get; set; }
+    public partial class BlazorDropList<T>
+    {
+        [Parameter] public T Value { get; set; } = default!;
 
-		[Parameter]
-		public EventCallback<T> SelectedValuesChanged { get; set; }
+        [Parameter] public EventCallback<T> ValueChanged { get; set; }
 
-		private bool _didLoadPageAfterInitialization = false;
-		private bool _didAddScrollEvent = false;
+        [Parameter] public Expression<Func<T>>? ValueExpression { get; set; }
 
-		protected override async Task OnInitializedAsync()
-		{
-			if (Items.Any() is false)
-			{
-				await LoadPageAsync(CurrentPage);
-			}
+        private bool _keyboardGuardRegistered;
 
-			_didLoadPageAfterInitialization = true;
-		}
+        protected override string ScrollContainerId => Id;
 
-		protected override async Task OnAfterRenderAsync(bool firstRender)
-		{
-			if (_didLoadPageAfterInitialization && _didAddScrollEvent is false)
-			{
-				_didAddScrollEvent = true;
-				CreateDotNetRef();
+        protected override string FocusTargetId => ListboxId;
 
-				await RegisterScrollAsync(Id, DotNetRef);
-			}
-		}
+        protected internal override string RootCssClass => Css(base.RootCssClass, "bzd-list-container");
 
-		protected override async Task HandleItemSelectedAsync(T value)
-		{
-			await SetLoadingStateAsync(true);
+        protected string? ListStyle => string.Concat(MaxHeightStyle, Style);
 
-			if (OnItemClickAsync == null)
-			{
-				Value = value;
-			}
-			else
-			{
-				await SetLoadingStateAsync(true);
-				Value = await OnItemClickAsync.Invoke(value);
-				await SetLoadingStateAsync(false);
-			}
+        protected override void OnParametersSet() => BindField(ValueExpression);
 
-			await SetLoadingStateAsync(false);
-		}
+        protected override async Task OnAfterRenderAsync(bool firstRender)
+        {
+            if (firstRender)
+            {
+                await AttachScrollAsync();
+                _keyboardGuardRegistered = true;
+                await InteropService.RegisterKeyboardGuardAsync(ListboxId);
+            }
 
-		protected override bool IsItemSelected(T item)
-		{
-			return EqualityComparer<T>.Default.Equals(item, Value);
-		}
+            await base.OnAfterRenderAsync(firstRender);
+        }
 
-		public async ValueTask DisposeAsync()
-		{
-			if (DotNetRef != null)
-			{
-				await UnregisterScrollAsync(Id);
+        protected override async Task ReleaseInteropAsync()
+        {
+            await base.ReleaseInteropAsync();
+            if (_keyboardGuardRegistered)
+            {
+                _keyboardGuardRegistered = false;
+                await SafeInteropAsync(() => InteropService.UnregisterKeyboardGuardAsync(ListboxId));
+            }
+        }
 
-				DotNetRef.Dispose();
-			}
-		}
-	}
+        protected override async Task OnItemResolvedAsync(T item)
+        {
+            Value = item;
+            await ValueChanged.InvokeAsync(Value);
+            NotifyFieldChanged();
+        }
+
+        protected internal override bool IsItemSelected(T item) => !(Value is null) && ItemEquals(item, Value);
+    }
 }

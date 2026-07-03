@@ -1,18 +1,34 @@
-﻿using Microsoft.JSInterop;
+using Microsoft.JSInterop;
 using System.Threading.Tasks;
 
 namespace BlazorDrop.Interfaces
 {
-	public interface IBlazorDropInteropService
-	{
-		Task RegisterClickOutsideAsync(string containerId, DotNetObjectReference<IBlazorDropInvokable> dotNetRef);
+    internal interface IBlazorDropInteropService
+    {
+        Task RegisterClickOutsideAsync(string containerId, DotNetObjectReference<IBlazorDropInvokable> dotNetRef);
 
-		Task UnregisterClickOutsideAsync(string containerId);
+        Task UnregisterClickOutsideAsync(string containerId);
 
-		Task RegisterInputAsync(string inputId, int debounceDelay, string containerId, DotNetObjectReference<IBlazorDropInvokable> dotNetRef);
+        Task RegisterInputAsync(string inputId, int debounceDelay, DotNetObjectReference<IBlazorDropInvokable> dotNetRef);
 
-		Task RegisterScrollAsync(string containerId, string callbackMethod, DotNetObjectReference<IBlazorDropInvokable> dotNetRef);
+        Task UnregisterInputAsync(string inputId);
 
-		Task UnregisterScrollAsync(string containerId);
-	}
+        Task RegisterScrollAsync(string containerId, DotNetObjectReference<IBlazorDropInvokable> dotNetRef);
+
+        Task UnregisterScrollAsync(string containerId);
+
+        Task CheckScrollEndAsync(string containerId);
+
+        Task RegisterDropdownPositionAsync(string anchorId, string dropdownId);
+
+        Task UnregisterDropdownPositionAsync(string dropdownId);
+
+        Task RegisterKeyboardGuardAsync(string elementId);
+
+        Task UnregisterKeyboardGuardAsync(string elementId);
+
+        Task ScrollIntoViewAsync(string elementId);
+
+        Task FocusAsync(string elementId);
+    }
 }
