@@ -1,64 +1,130 @@
-﻿@page "/"
-@using BlazorDrop
+@page "/"
 @using BlazorDrop.Components
-@using BlazorDrop.Components.Loading
+@using BlazorDrop.Data
+@using Microsoft.AspNetCore.Components.Forms
 
-<style>
+<div class="container pb-5 @(_dark ? "bzd-theme-dark" : null)">
 
-</style>
+    <div class="form-check form-switch mb-3">
+        <input class="form-check-input" type="checkbox" id="darkSwitch" @bind="_dark" />
+        <label class="form-check-label" for="darkSwitch">Dark theme</label>
+    </div>
 
-<div class="container pb-5">
-
-    <TestCard Title="Single Select (Two-way Bind)">
-        <BlazorDropSelect T="SelectItem"
-                          Placeholder="Select value"
-                          @bind-Value="@_singleSelected"
-                          DisplaySelector="@(x => x.Text)"
-                          OnLoadItemsAsync="LoadItemsPagedAsync"
-                          OnItemClickAsync="OnSingleSelected" />
-        <code class="state-debug">Parent State: @(_singleSelected?.Text ?? "NULL")</code>
+    <TestCard Title="Database-style: OnQueryAsync (paged + server-side search + cancellation), KeySelector">
+        <BlazorDropSelect T="Customer"
+                          Label="Customer"
+                          Placeholder="Type to search…"
+                          Clearable="true"
+                          FullWidth="true"
+                          PageSize="15"
+                          @bind-Value="_customer"
+                          DisplaySelector="@(x => x.Name)"
+                          KeySelector="@(x => x.Id)"
+                          OnQueryAsync="QueryCustomersAsync"
+                          OnSearchChanged="@(t => _lastSearch = t)" />
+        <code class="state-debug">Parent State: @(_customer?.Name ?? "NULL") | queries: @_queryCount | last search: "@_lastSearch"</code>
     </TestCard>
 
-    <TestCard Title="Initially NULL (Manual Update)">
-        <BlazorDropSelect T="SelectItem"
-                          Placeholder="Starts null"
-                          Value="@_nullSelected"
-                          DisplaySelector="@(x => x.Text)"
-                          OnLoadItemsAsync="LoadItemsPagedAsync"
-                          OnItemClickAsync="OnNullSelected" />
-        <code class="state-debug">Parent State: @(_nullSelected?.Text ?? "NULL")</code>
+    <TestCard Title="Multi Select — in-memory Items (paged + filtered client-side), chips, MaxSelectedItems, EditForm-ready">
+        <BlazorDropMultiSelect T="Customer"
+                               Placeholder="Select up to 4…"
+                               Clearable="true"
+                               FullWidth="true"
+                               MaxDisplayedChips="3"
+                               MaxSelectedItems="4"
+                               @bind-SelectedValues="_multi"
+                               DisplaySelector="@(x => x.Name)"
+                               KeySelector="@(x => x.Id)"
+                               Items="_customers" />
+        <code class="state-debug">Selected: @_multi.Count | @(string.Join(", ", _multi.Select(x => x.Name)))</code>
     </TestCard>
 
-    <TestCard Title="Multi Select">
-        <BlazorDropMultiSelect T="SelectItem"
-                               Placeholder="Multi select"
-                               DisplaySelector="@(x => x.Text)"
-                               OnLoadItemsAsync="LoadItemsPagedAsync"
-                               OnItemClickAsync="OnMultiSelected" />
-        <code class="state-debug">Selected Count: @_multiSelected.Count | Items: @(string.Join(", ", _multiSelected.Select(x => x.Text)))</code>
+    <TestCard Title="List — synchronous loader (OnLoadItems), keyboard navigation, @@ref.ReloadAsync()">
+        <BlazorDropList @ref="_list"
+                        T="Customer"
+                        AriaLabel="Customers"
+                        @bind-Value="_listValue"
+                        DisplaySelector="@(x => x.Name)"
+                        KeySelector="@(x => x.Id)"
+                        OnLoadItems="LoadCustomersPage"
+                        PageSize="20" />
+        <button class="btn btn-outline-secondary btn-sm mt-2" @onclick="AddCustomerAndReload">Add a customer to the "database" and reload</button>
+        <code class="state-debug">Parent State: @(_listValue?.Name ?? "NULL") | rows in db: @_customers.Count</code>
     </TestCard>
 
-    <TestCard Title="Custom Template">
-        <BlazorDropSelect T="SelectItem"
-                          Placeholder="Template"
-                          Value="@_templatedSelected"
-                          DisplaySelector="@(x => x.Text)"
-                          OnLoadItemsAsync="LoadItemsPagedAsync"
-                          OnItemClickAsync="OnTemplateSelected">
+    <TestCard Title="Outlined + Dense + custom template — DataSource built from IQueryable (Skip/Take done for you)">
+        <BlazorDropSelect T="Customer"
+                          Variant="DropdownVariant.Outlined"
+                          Dense="true"
+                          FullWidth="true"
+                          Placeholder="Outlined dense"
+                          @bind-Value="_templated"
+                          DisplaySelector="@(x => x.Name)"
+                          KeySelector="@(x => x.Id)"
+                          DataSource="_queryableSource">
             <ItemTemplate Context="item">
-                <span class="badge bg-success">@item.Text</span>
+                <span class="badge bg-success">@item.Name</span> <small class="text-muted">@item.City</small>
             </ItemTemplate>
         </BlazorDropSelect>
-        <code class="state-debug">Parent State: @(_templatedSelected?.Text ?? "NULL")</code>
+        <code class="state-debug">Parent State: @(_templated?.Name ?? "NULL")</code>
     </TestCard>
 
-    <TestCard Title="Disabled">
-        <BlazorDropSelect T="SelectItem"
-                          Placeholder="Disabled"
-                          Disabled="true"
-                          Value="@_disabledSelected"
-                          DisplaySelector="@(x => x.Text)"
-                          OnLoadItemsAsync="LoadItemsPagedAsync" />
+    <TestCard Title="Error state + retry">
+        <BlazorDropSelect T="Customer"
+                          FullWidth="true"
+                          Placeholder="This loader fails"
+                          DisplaySelector="@(x => x.Name)"
+                          OnLoadItemsAsync="FailingLoadAsync"
+                          OnError="OnLoadError" />
+        <code class="state-debug">Last error: @(_lastError?.Message ?? "—")</code>
+    </TestCard>
+
+    <TestCard Title="EditForm validation (Required) — Select and MultiSelect">
+        <EditForm Model="_model" OnValidSubmit="Submit">
+            <DataAnnotationsValidator />
+            <BlazorDropSelect T="Customer"
+                              Label="Required customer"
+                              Placeholder="Pick one"
+                              Clearable="true"
+                              FullWidth="true"
+                              @bind-Value="_model.Customer"
+                              DisplaySelector="@(x => x.Name)"
+                              KeySelector="@(x => x.Id)"
+                              Items="_customers" />
+            <ValidationMessage For="@(() => _model.Customer)" />
+            <BlazorDropMultiSelect T="Customer"
+                                   Label="At least one tag"
+                                   FullWidth="true"
+                                   Class="mt-2"
+                                   @bind-SelectedValues="_model.Tags"
+                                   DisplaySelector="@(x => x.Name)"
+                                   KeySelector="@(x => x.Id)"
+                                   Items="_customers" />
+            <ValidationMessage For="@(() => _model.Tags)" />
+            <button class="btn btn-primary mt-2" type="submit">Submit</button>
+            @if (_submitResult is not null)
+            {
+                <code class="state-debug">@_submitResult</code>
+            }
+        </EditForm>
+    </TestCard>
+
+    <TestCard Title="Custom texts (cascaded BlazorDropTexts) + Disabled">
+        <CascadingValue Value="_customTexts">
+            <BlazorDropSelect T="Customer"
+                              Placeholder="Type &quot;zzz&quot; to see the custom empty text"
+                              FullWidth="true"
+                              Clearable="true"
+                              DisplaySelector="@(x => x.Name)"
+                              Items="_customers" />
+            <BlazorDropSelect T="Customer"
+                              Placeholder="Disabled"
+                              Disabled="true"
+                              FullWidth="true"
+                              Class="mt-2"
+                              DisplaySelector="@(x => x.Name)"
+                              Items="_customers" />
+        </CascadingValue>
     </TestCard>
 
 </div>

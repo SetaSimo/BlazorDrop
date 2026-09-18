@@ -1,33 +1,8 @@
-﻿@using BlazorDrop.Components.Base
 @using BlazorDrop.Components.Base.Select
-@using BlazorDrop.Components.Loading
+@using BlazorDrop.Components.Internal
 @typeparam T
-@inherits BaseLazySelectableComponent<T, BlazorDropList<T>>
+@inherits BaseLazySelectableComponent<T>
 
-<div id="@Id" class="bzd-container bzd-list-container @Class" style="@Style">
-    @if (ShowLoadingIndicator && _isLoading)
-    {
-        <BlazorDropLinearProgressBar Class="bzd-list-loading-container"></BlazorDropLinearProgressBar>
-    }
-    @foreach (var item in Items)
-    {
-        <div role="option"
-             aria-selected="@IsItemSelected(item)"
-             class="@GetSelectableItemClass(item)"
-             @onclick="() => HandleItemSelectedAsync(item)">
-            @if (ItemTemplate != null)
-            {
-                @ItemTemplate(item)
-            }
-            else
-            {
-                @GetDisplayValue(item)
-            }
-        </div>
-    }
-
-    @if (!Items.Any())
-    {
-        <div class="bzd-empty-message">@ValueNotFoundMessageText</div>
-    }
+<div @attributes="AdditionalAttributes" id="@Id" class="@RootCssClass" style="@ListStyle">
+    <BlazorDropOptions TItem="T" Host="this" Focusable="true" />
 </div>

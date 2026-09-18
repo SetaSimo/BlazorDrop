@@ -1,0 +1,83 @@
+@namespace BlazorDrop.Components.Internal
+@using BlazorDrop.Components.Base.Select
+@using BlazorDrop.Components.Loading
+@using System.ComponentModel
+@attribute [EditorBrowsable(EditorBrowsableState.Never)]
+@typeparam TItem
+
+<div @attributes="Host.AdditionalAttributes" id="@Host.Id" class="@Host.RootCssClass" style="@Host.Style">
+
+    <div class="bzd-field">
+        <div class="bzd-input-wrapper @WrapperClass">
+            @Prefix
+            <input id="@Host.InputId"
+                   class="bzd-input @InputClass"
+                   type="text"
+                   placeholder="@Host.InputPlaceholder"
+                   disabled="@Host.Disabled"
+                   role="combobox"
+                   aria-expanded="@(Host.IsDropdownOpen ? "true" : "false")"
+                   aria-controls="@Host.ListboxId"
+                   aria-autocomplete="list"
+                   aria-haspopup="listbox"
+                   aria-activedescendant="@Host.ActiveDescendantId"
+                   aria-label="@Host.AriaLabel"
+                   autocomplete="off"
+                   @onclick="@On(Host.OpenDropdownAsync)"
+                   @onkeydown="@OnKeyDown"
+                   @bind-value="Host.SearchText"
+                   @bind-value:event="oninput" />
+
+            @if (Host.Clearable && Host.HasClearableSelection && !Host.Disabled)
+            {
+                <button type="button"
+                        class="bzd-clear-button"
+                        aria-label="@Host.Strings.ClearSelection"
+                        title="@Host.Strings.ClearSelection"
+                        @onclick="@On(Host.ClearSelectionAsync)"
+                        @onclick:stopPropagation="true"
+                        @onmousedown:preventDefault="true">×</button>
+            }
+
+            @if (Host.IsLoading && Host.ShowLoadingIndicator)
+            {
+                <BlazorDropCircularProgressBar Class="bzd-input-spinner" AriaLabel="@Host.Strings.Loading" />
+            }
+
+            <span class="bzd-arrow" aria-hidden="true"></span>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Host.Label))
+        {
+            <label class="bzd-label" for="@Host.InputId">@Host.Label</label>
+        }
+    </div>
+
+    @if (Host.IsDropdownOpen)
+    {
+        <div class="bzd-scrim" @onclick="@On(Host.CloseDropdownAsync)"></div>
+        <div class="bzd-dropdown" id="@Host.DropdownElementId" style="@Host.MaxHeightStyle">
+            <div class="bzd-sheet-header">
+                <span class="bzd-sheet-title">@(Host.Label ?? Host.AriaLabel)</span>
+                <button type="button" class="bzd-sheet-close" @onclick="@On(Host.CloseDropdownAsync)">@Host.Strings.Done</button>
+            </div>
+            <BlazorDropOptions TItem="TItem" Host="Host" Multiselectable="Multiselectable" />
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public BaseLazyInputWithSelect<TItem> Host { get; set; } = default!;
+
+    [Parameter] public RenderFragment? Prefix { get; set; }
+
+    [Parameter] public string? WrapperClass { get; set; }
+
+    [Parameter] public string? InputClass { get; set; }
+
+    [Parameter] public bool Multiselectable { get; set; }
+
+    private EventCallback<KeyboardEventArgs> OnKeyDown => EventCallback.Factory.Create<KeyboardEventArgs>(Host, Host.OnInputKeyDownAsync);
+
+    private EventCallback<MouseEventArgs> On(Func<Task> handler) => EventCallback.Factory.Create<MouseEventArgs>(Host, handler);
+}

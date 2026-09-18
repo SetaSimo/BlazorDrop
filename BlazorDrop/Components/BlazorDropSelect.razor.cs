@@ -1,92 +1,63 @@
-﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components;
 using System;
-using System.Collections.Generic;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 namespace BlazorDrop.Components
 {
-	public partial class BlazorDropSelect<T> : IAsyncDisposable
-	{
-		[Parameter]
-		public T Value { get; set; }
+    public partial class BlazorDropSelect<T>
+    {
+        [Parameter] public T Value { get; set; } = default!;
 
-		[Parameter]
-		public EventCallback<T> ValueChanged { get; set; }
+        [Parameter] public EventCallback<T> ValueChanged { get; set; }
 
-		protected override async Task OnInitializedAsync()
-		{
-			CreateDotNetRef();
-			await LoadPageAsync(CurrentPage);
+        [Parameter] public Expression<Func<T>>? ValueExpression { get; set; }
 
-			if (Value != null)
-			{
-				UpdateSearchTextAfterSelect(Value);
-			}
-		}
+        private T _lastValue = default!;
 
-		protected override async Task OnAfterRenderAsync(bool firstRender)
-		{
-			if (firstRender && Disabled is false)
-			{
-				await RegisterInputAsync(_inputSelectorId);
-			}
+        protected override Task OnInitializedCoreAsync()
+        {
+            _lastValue = Value;
+            SyncSearchTextToValue();
+            return Task.CompletedTask;
+        }
 
-			if (_isDropdownOpen && _isScrollHandlerAttached is false && Disabled is false)
-			{
-				await RegisterScrollAsync(_scrollContainerId, DotNetRef);
-			}
-		}
+        protected override void OnParametersSet()
+        {
+            BindField(ValueExpression);
+            if (!ItemEquals(Value, _lastValue))
+            {
+                _lastValue = Value;
+                if (!IsDropdownOpen)
+                {
+                    SyncSearchTextToValue();
+                }
+            }
+        }
 
-		protected override void OnParametersSet()
-		{
-			UpdateSearchTextAfterSelect(Value);
-		}
+        private void SyncSearchTextToValue() => SearchText = Value is null ? string.Empty : GetDisplayValue(Value);
 
-		protected override async Task HandleItemSelectedAsync(T value)
-		{
-			await SetLoadingStateAsync(true);
+        protected override void ResetSearchTextOnClose() => SyncSearchTextToValue();
 
-			if (OnItemClickAsync == null)
-			{
-				Value = value;
-			}
-			else
-			{
-				Value = await OnItemClickAsync.Invoke(value);
-			}
+        protected override async Task OnItemResolvedAsync(T item)
+        {
+            Value = item;
+            _lastValue = item;
+            SyncSearchTextToValue();
+            await ValueChanged.InvokeAsync(Value);
+            NotifyFieldChanged();
+            await CloseDropdownAsync();
+        }
 
-			UpdateSearchTextAfterSelect(Value);
-			await ValueChanged.InvokeAsync(Value);
+        protected internal override bool IsItemSelected(T item) => !(Value is null) && ItemEquals(item, Value);
 
-			await SetLoadingStateAsync(false);
-		}
+        protected internal override bool HasClearableSelection => !(Value is null);
 
-		private void UpdateSearchTextAfterSelect(T value)
-		{
-			if (value == null)
-			{
-				_searchText = string.Empty;
-				return;
-			}
-
-			_searchText = GetDisplayValue(value);
-		}
-
-		protected override bool IsItemSelected(T item)
-		{
-			return EqualityComparer<T>.Default.Equals(item, Value);
-		}
-
-		public async ValueTask DisposeAsync()
-		{
-			if (DotNetRef != null)
-			{
-				await InteropService.UnregisterClickOutsideAsync(_inputSelectorId);
-				await UnregisterScrollAsync(_scrollContainerId);
-
-				DotNetRef.Dispose();
-				_dotNetRefCreated = false;
-			}
-		}
-	}
+        protected override async Task OnSelectionClearedAsync()
+        {
+            Value = default!;
+            _lastValue = default!;
+            await ValueChanged.InvokeAsync(Value);
+        }
+    }
 }

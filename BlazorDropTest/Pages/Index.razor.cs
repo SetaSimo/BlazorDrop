@@ -1,67 +1,109 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using BlazorDrop.Components;
+using BlazorDrop.Data;
 
 namespace BlazorDropTest.Pages
 {
-	public partial class Index
-	{
-		private List<SelectItem> _items = new();
+    public partial class Index
+    {
+        private static readonly string[] Cities = { "Berlin", "Madrid", "Oslo", "Prague", "Riga", "Tallinn", "Vienna" };
 
-		private SelectItem? _singleSelected;
-		private SelectItem? _nullSelected;
-		private SelectItem? _disabledSelected;
-		private SelectItem? _templatedSelected;
+        private readonly List<Customer> _customers = new();
 
-		private List<SelectItem> _multiSelected = new();
+        private Customer? _customer;
+        private Customer? _listValue;
+        private Customer? _templated;
+        private IList<Customer> _multi = new List<Customer>();
+        private BlazorDropList<Customer>? _list;
+        private IBlazorDropDataSource<Customer> _queryableSource = default!;
 
-		protected override void OnInitialized()
-		{
-			for (int i = 1; i <= 100; i++)
-			{
-				_items.Add(new SelectItem(Guid.NewGuid(), $"Item {i}"));
-			}
+        private bool _dark;
+        private int _queryCount;
+        private string? _lastSearch;
+        private Exception? _lastError;
 
-			_singleSelected = _items.First();
-		}
+        private readonly DemoModel _model = new();
+        private string? _submitResult;
 
-		private Task<IEnumerable<SelectItem>> LoadItemsPagedAsync(int page, int pageSize)
-			=> Task.FromResult(_items.Skip(page * pageSize).Take(pageSize).AsEnumerable());
+        private readonly BlazorDropTexts _customTexts = new()
+        {
+            NoItems = "Nothing matched your search",
+            LoadFailed = "Could not load the data.",
+            Retry = "Try again",
+            Loading = "Fetching...",
+            ClearSelection = "Clear the selection",
+            RemoveItemFormat = "Remove {0}",
+            MoreSelectedFormat = "+{0} more",
+            Done = "Apply",
+        };
 
-		private async Task<SelectItem> OnSingleSelected(SelectItem item)
-		{
-			return item;
-		}
+        protected override void OnInitialized()
+        {
+            for (var i = 1; i <= 500; i++)
+            {
+                _customers.Add(new Customer(i, $"Customer {i}", Cities[i % Cities.Length]));
+            }
 
-		private Task<SelectItem> OnNullSelected(SelectItem item)
-		{
-			_nullSelected = item;
+            _customer = _customers[0];
 
-			return Task.FromResult(item);
-		}
+            _queryableSource = BlazorDropDataSource.FromQueryable<Customer>(q =>
+            {
+                var query = _customers.AsQueryable();
+                if (q.HasSearch)
+                {
+                    query = query.Where(x => x.Name.Contains(q.SearchText, StringComparison.OrdinalIgnoreCase));
+                }
 
-		private Task<SelectItem> OnTemplateSelected(SelectItem item)
-		{
-			_templatedSelected = item;
+                return query.OrderBy(x => x.Name);
+            });
+        }
 
-			return Task.FromResult(item);
-		}
+        private async Task<IEnumerable<Customer>> QueryCustomersAsync(BlazorDropQuery query, CancellationToken cancellationToken)
+        {
+            _queryCount++;
+            await Task.Delay(150, cancellationToken);
+            return _customers
+                .Where(x => !query.HasSearch || x.Name.Contains(query.SearchText, StringComparison.OrdinalIgnoreCase))
+                .OrderBy(x => x.Id)
+                .Skip(query.Skip)
+                .Take(query.PageSize)
+                .ToList();
+        }
 
-		private Task<SelectItem> OnMultiSelected(SelectItem item)
-		{
-			if (_multiSelected.Any(x => x.Id == item.Id))
-			{
-				_multiSelected.RemoveAll(x => x.Id == item.Id);
-			}
-			else
-			{
-				_multiSelected.Add(item);
-			}
+        private IEnumerable<Customer> LoadCustomersPage(int page, int pageSize)
+            => _customers.Skip(page * pageSize).Take(pageSize).ToList();
 
-			return Task.FromResult(item);
-		}
-	}
+        private async Task AddCustomerAndReload()
+        {
+            var id = _customers.Count + 1;
+            _customers.Insert(0, new Customer(id, $"New customer {id}", Cities[id % Cities.Length]));
+            if (_list != null)
+            {
+                await _list.ReloadAsync();
+            }
+        }
 
-	public sealed record SelectItem(Guid Id, string Text);
+        private Task<IEnumerable<Customer>> FailingLoadAsync(int page, int pageSize)
+            => throw new InvalidOperationException("Simulated load failure");
+
+        private void OnLoadError(Exception ex) => _lastError = ex;
+
+        private void Submit() => _submitResult = $"Submitted: {_model.Customer?.Name ?? "—"} + {_model.Tags.Count} tag(s)";
+
+        public sealed record Customer(int Id, string Name, string City);
+
+        public sealed class DemoModel
+        {
+            [Required(ErrorMessage = "Please pick a customer")]
+            public Customer? Customer { get; set; }
+
+            [MinLength(1, ErrorMessage = "Pick at least one tag")]
+            public IList<Customer> Tags { get; set; } = new List<Customer>();
+        }
+    }
 }

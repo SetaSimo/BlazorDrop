@@ -1,41 +1,59 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+<Project Sdk="Microsoft.NET.Sdk.Razor">
 
+    <!--
+        One code base, two package lines (see .github/workflows/release.yml):
+          BlazorDropLine=legacy -> 1.x  netstandard2.1          .NET Core 3.1 / Blazor WebAssembly 3.2
+          BlazorDropLine=modern -> 2.x  net6.0;net8.0;net10.0   .NET 6 / 8 / 10
+          (unset)               -> dev build of every target framework
+        Source stays within C# 8 / Razor 3.0; anything newer is #if NET6_0_OR_GREATER guarded.
+    -->
     <PropertyGroup>
-        <TargetFrameworks>net6.0;net8.0</TargetFrameworks>
-        <RazorLangVersion>6.0</RazorLangVersion>
+        <TargetFrameworks Condition="'$(BlazorDropLine)' == 'legacy'">netstandard2.1</TargetFrameworks>
+        <TargetFrameworks Condition="'$(BlazorDropLine)' == 'modern'">net6.0;net8.0;net10.0</TargetFrameworks>
+        <TargetFrameworks Condition="'$(TargetFrameworks)' == ''">netstandard2.1;net6.0;net8.0;net10.0</TargetFrameworks>
+        <LangVersion>8.0</LangVersion>
+        <Nullable>enable</Nullable>
+        <!-- the .NET 10 Razor SDK emits a "global using" for net10.0, which C# 8 cannot compile -->
+        <ImplicitUsings>disable</ImplicitUsings>
+        <GenerateEmbeddedValidatableTypeAttribute>false</GenerateEmbeddedValidatableTypeAttribute>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <CheckEolTargetFramework>false</CheckEolTargetFramework>
+        <EnableNETAnalyzers>true</EnableNETAnalyzers>
+        <AnalysisLevel>latest</AnalysisLevel>
     </PropertyGroup>
 
-    <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.Components" Version="6.0.36" />
-        <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="6.0.36" />
-        <PackageReference Include="Microsoft.JSInterop" Version="6.0.36" />
-    </ItemGroup>
-    
     <PropertyGroup>
-        <Version>2.0.3</Version>
-    </PropertyGroup>
-
-    <PropertyGroup>
-        <PackageReleaseNotes>
-            See full changelog: https://github.com/SetaSimo/BlazorDrop/blob/main/CHANGELOG.md
-        </PackageReleaseNotes>
-    </PropertyGroup>
-
-    <ItemGroup>
-        <Content Include="Components\Loading\BlazorDropLinearProgressBar.razor.cs" />
-        <Content Include="Components\Loading\BlazorDropCircularProgressBar.razor.cs" />
-        <Content Include="Components\BlazorDropList.razor.cs" />
-        <Content Include="Components\BlazorDropSelect.razor.cs" />
-        <Content Include="Components\BlazorDropMultiSelect.razor.cs" />
-    </ItemGroup>
-
-    <PropertyGroup>
+        <Version>0.0.0-local</Version>
+        <Authors>SetaSimo</Authors>
+        <Description>Lightweight Material-styled Blazor dropdown / multiselect / list components with async paged loading (sync or async, in-memory or database), debounced server-side search, infinite scroll, keyboard navigation and responsive (mobile bottom-sheet) behavior. Works on .NET Core 3.1 and .NET 6/8/10.</Description>
+        <PackageTags>blazor;dropdown;select;multiselect;combobox;autocomplete;material;material-design;lazy-loading;infinite-scroll;paging;component;razor</PackageTags>
+        <PackageProjectUrl>https://github.com/SetaSimo/BlazorDrop</PackageProjectUrl>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageReadmeFile>README.md</PackageReadmeFile>
-        <PackageLicenseFile>LICENSE</PackageLicenseFile>
+        <PackageReleaseNotes>https://github.com/SetaSimo/BlazorDrop/blob/main/CHANGELOG.md</PackageReleaseNotes>
+        <PublishRepositoryUrl>true</PublishRepositoryUrl>
+        <EmbedUntrackedSources>true</EmbedUntrackedSources>
+        <IncludeSymbols>true</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     </PropertyGroup>
 
-    <ItemGroup>
-        <None Include="..\README.md" Pack="true" PackagePath="" />
-        <None Include="..\LICENSE" Pack="true" PackagePath="" />
+    <!-- Legacy line -->
+    <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
+        <RazorLangVersion>3.0</RazorLangVersion>
+    </PropertyGroup>
+    <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
+        <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="3.1.32" />
     </ItemGroup>
+
+    <!-- Modern line -->
+    <ItemGroup Condition="'$(TargetFramework)' != 'netstandard2.1'">
+        <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <SupportedPlatform Include="browser" />
+        <InternalsVisibleTo Include="BlazorDrop.Tests" />
+        <None Include="..\README.md" Pack="true" PackagePath="\" />
+    </ItemGroup>
+
 </Project>
