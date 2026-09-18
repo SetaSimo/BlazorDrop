@@ -13,8 +13,38 @@ env:
   DOTNET_CLI_TELEMETRY_OPTOUT: true
 
 jobs:
-  publish:
+  meta:
     runs-on: ubuntu-latest
+    outputs:
+      base: ${{ steps.meta.outputs.base }}
+    steps:
+      - name: Resolve base version from branch name
+        id: meta
+        shell: bash
+        run: |
+          base="${GITHUB_REF_NAME#release-}"
+          if ! [[ "$base" =~ ^[0-9]+(\.[0-9]+){1,2}(-[0-9A-Za-z.]+)?$ ]]; then
+            echo "::error::Branch '$GITHUB_REF_NAME' must be named release-<version>, e.g. release-3.1 or release-3.2.4"
+            exit 1
+          fi
+          echo "base=$base" >> "$GITHUB_OUTPUT"
+          echo "Releasing 1.$base (.NET Core 3.1) and 2.$base (.NET 6/8/10)"
+
+  pack:
+    needs: meta
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - line: legacy
+            major: 1
+            libs: "lib/netstandard2.1 "
+          - line: modern
+            major: 2
+            libs: "lib/net10.0 lib/net6.0 lib/net8.0 "
+    env:
+      VERSION: ${{ matrix.major }}.${{ needs.meta.outputs.base }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -24,42 +54,20 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
-      - name: Resolve version and line
-        id: meta
-        shell: bash
-        run: |
-          version="${GITHUB_REF_NAME#release-}"
-          if ! [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$ ]]; then
-            echo "::error::Branch '$GITHUB_REF_NAME' must be named release-<version>, e.g. release-1.2.0 or release-2.1.0-beta.1"
-            exit 1
-          fi
-          case "${version%%.*}" in
-            1) line=legacy ;;
-            2) line=modern ;;
-            *) echo "::error::Version '$version': major must be 1 (.NET Core 3.1) or 2 (.NET 6/8/10)"; exit 1 ;;
-          esac
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-          echo "line=$line" >> "$GITHUB_OUTPUT"
-          echo "Packing $version as the '$line' line"
-
-      - name: Pack
+      - name: Pack ${{ matrix.line }}
         run: >
           dotnet pack BlazorDrop/BlazorDrop.csproj -c Release -o artifacts
-          -p:BlazorDropLine=${{ steps.meta.outputs.line }}
-          -p:Version=${{ steps.meta.outputs.version }}
+          -p:BlazorDropLine=${{ matrix.line }}
+          -p:Version=${{ env.VERSION }}
           -p:ContinuousIntegrationBuild=true
 
       - name: Verify package contents
         shell: bash
         run: |
-          pkg="artifacts/BlazorDrop.${{ steps.meta.outputs.version }}.nupkg"
+          pkg="artifacts/BlazorDrop.${VERSION}.nupkg"
           libs=$(unzip -Z1 "$pkg" | grep -o '^lib/[^/]*' | sort -u | tr '\n' ' ')
-          case "${{ steps.meta.outputs.line }}" in
-            legacy) expected="lib/netstandard2.1 " ;;
-            modern) expected="lib/net10.0 lib/net6.0 lib/net8.0 " ;;
-          esac
           echo "lib folders: $libs"
-          [ "$libs" = "$expected" ] || { echo "::error::Expected '$expected' but the package contains '$libs'"; exit 1; }
+          [ "$libs" = "${{ matrix.libs }}" ] || { echo "::error::Expected '${{ matrix.libs }}' but the package contains '$libs'"; exit 1; }
           for asset in staticwebassets/BlazorDropSelect.js staticwebassets/BlazorDropSelect.css README.md; do
             unzip -Z1 "$pkg" | grep -qx "$asset" || { echo "::error::$asset is missing from the package"; exit 1; }
           done
@@ -70,7 +78,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: BlazorDrop-${{ steps.meta.outputs.version }}
+          name: BlazorDrop-${{ env.VERSION }}
           path: artifacts/*
 
       - name: Push to nuget.org
@@ -80,11 +88,23 @@ jobs:
           --api-key ${{ secrets.NUGET_API_KEY }}
           --skip-duplicate
 
-      - name: GitHub release
-        uses: softprops/action-gh-release@v2
+  release:
+    needs: [meta, pack]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
         with:
-          tag_name: v${{ steps.meta.outputs.version }}
+          pattern: BlazorDrop-*
+          path: artifacts
+          merge-multiple: true
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.meta.outputs.base }}
           target_commitish: ${{ github.sha }}
-          name: BlazorDrop ${{ steps.meta.outputs.version }}
+          name: BlazorDrop ${{ needs.meta.outputs.base }}
+          body: |
+            - `1.${{ needs.meta.outputs.base }}` for .NET Core 3.1
+            - `2.${{ needs.meta.outputs.base }}` for .NET 6 / 8 / 10
           files: artifacts/*
           generate_release_notes: true
