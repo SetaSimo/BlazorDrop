@@ -8,9 +8,10 @@
 
 **BlazorDrop** is a small Material-styled Blazor component library: a searchable **dropdown**, a **multi-select**
 with chips and a **list**, all loading data **page by page** (infinite scroll) from memory, a delegate or a
-database, synchronously or asynchronously. One NuGet package serves **.NET Core 3.1** and **.NET 6 / 8 / 10**.
+database, synchronously or asynchronously. Two package lines from one code base: **1.x** for **.NET Core 3.1**,
+**2.x** for **.NET 6 / 8 / 10** (see [.NET compatibility](#net-compatibility)).
 
-> ## ⚠️ Version 3.0 is **not compatible** with 2.x
+> ## Version 3.0 is **not compatible** with 2.x
 > v3 fixes broken two-way binding and reworks the data-loading API. See **[Migrating from 2.x](#migrating-from-2x)**.
 > To stay on the old API, pin `2.0.3`.
 
@@ -359,15 +360,13 @@ ancestor with `transform`/`filter` turns into local positioning.
 
 | BlazorDrop | Runs on | Package asset |
 | ---------- | ------- | ------------- |
-| 3.x | .NET Core 3.1, Blazor WebAssembly 3.2 | `netstandard2.1` (Microsoft.AspNetCore.Components 3.1.x) |
-| 3.x | .NET 6, 7 | `net6.0` |
-| 3.x | .NET 8, 9 | `net8.0` |
-| 3.x | .NET 10+ | `net10.0` |
-| 2.x | .NET 6, .NET 8 | |
-| 1.x | .NET Core 3.1 | |
+| < 2.0.0 (1.x) | .NET Core 3.1, Blazor WebAssembly 3.2 | `netstandard2.1` (Microsoft.AspNetCore.Components 3.1.x) |
+| ≥ 2.0.0 (2.x) | .NET 6, .NET 8 | `net6.0`, `net8.0` |
+| ≥ 2.0.0 (2.x) | .NET 7, .NET 9, .NET 10 (not tested, potentially works) | `net6.0`, `net8.0`, `net10.0` |
 
-One code base, one package: the sources stay within C# 8 / Razor 3.0 and anything newer is `#if`-guarded,
-so a bug fix ships to every line at once. Infinite scroll is JS-driven (no `<Virtualize>`), which is why it
+The package major selects the line: pin `1.*` on .NET Core 3.1 and `2.*` on .NET 6+. Both lines are built from
+one code base: the sources stay within C# 8 / Razor 3.0 and anything newer is `#if`-guarded, so a bug fix ships
+to both lines at once (as a 1.x and a 2.x release). Infinite scroll is JS-driven (no `<Virtualize>`), which is why it
 behaves identically on 3.1. On 3.1 the renderer disposes components synchronously; the components handle
 both `IDisposable` and `IAsyncDisposable`.
 
